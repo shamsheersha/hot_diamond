@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "175234495774",
+    "project_id": "hotdiamond-dc51c",
+    "storage_bucket": "hotdiamond-dc51c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:175234495774:android:0e275962b53ecf5ce5850f",
+        "android_client_info": {
+          "package_name": "com.example.hot_diamond_users"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCf-iRWDDvR7Id0rQTTTr_4DzK-0RlqEeM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

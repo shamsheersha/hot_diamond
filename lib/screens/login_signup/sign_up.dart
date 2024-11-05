@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_bloc.dart';
+import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_event.dart';
+import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_state.dart';
 import 'package:hot_diamond_users/fonts/fonts.dart';
 import 'package:hot_diamond_users/screens/login_signup/login.dart';
 import 'package:hot_diamond_users/style/style.dart';
@@ -12,15 +16,23 @@ class SignUp extends StatelessWidget {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-  final TextEditingController phoneNumberController = TextEditingController();
-  final TextEditingController _genderController = TextEditingController();
-  final TextEditingController _dateOfBirthController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+
   final GlobalKey formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LayoutBuilder(builder: (context, constraints) {
+        body: BlocListener<AuthenticationBloc, AuthenticationState>(
+      listener: (context, state) {
+        if (state is SignUpSuccess) {
+          Navigator.pop(context);
+        } else if (state is SignUpFailture) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(state.error)));
+        }
+      },
+      child: LayoutBuilder(builder: (context, constraints) {
         return Column(
           children: [
             Image.asset(
@@ -55,7 +67,7 @@ class SignUp extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const Text(
-                            'Sing Up',
+                            'Sign Up',
                             style: mainHeading,
                           ),
                           const SizedBox(
@@ -106,7 +118,7 @@ class SignUp extends StatelessWidget {
                           const SizedBox(
                             height: 10,
                           ),
-                          PhoneNumberWidget(controller: phoneNumberController),
+                          PhoneNumberWidget(controller: _phoneNumberController),
                           const SizedBox(
                             height: 10,
                           ),
@@ -135,13 +147,20 @@ class SignUp extends StatelessWidget {
                           //     ),
                           //   ],
                           // ),
-                          const SizedBox(height: 10,),
+                          const SizedBox(
+                            height: 10,
+                          ),
                           Row(
                             children: [
                               Expanded(
                                 child: TextButton(
                                   onPressed: () {
-                                    Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Login()));
+                                    context.read<AuthenticationBloc>().add(SignUpEvent(
+                                        name: _nameController.text,
+                                        email: _emailController.text,
+                                        password: _passwordController.text,
+                                        phoneNumber: _phoneNumberController.text,
+                                        ));
                                   },
                                   style: redTextButton,
                                   child: const Text(
@@ -162,6 +181,6 @@ class SignUp extends StatelessWidget {
           ],
         );
       }),
-    );
+    ));
   }
 }

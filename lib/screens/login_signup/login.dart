@@ -1,20 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_bloc.dart';
+import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_event.dart';
+import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_state.dart';
 import 'package:hot_diamond_users/fonts/fonts.dart';
 import 'package:hot_diamond_users/screens/login_signup/forgot_password.dart';
 import 'package:hot_diamond_users/screens/login_signup/sign_up.dart';
+import 'package:hot_diamond_users/screens/main_screens/home_screen.dart';
 import 'package:hot_diamond_users/style/style.dart';
 import 'package:hot_diamond_users/widgets/custom_textfield.dart';
+import 'package:hot_diamond_users/widgets/show_custom%20_snakbar.dart';
 
-class Login extends StatelessWidget {
+class Login extends StatefulWidget {
   Login({super.key});
+
+  @override
+  State<Login> createState() => _LoginState();
+}
+
+class _LoginState extends State<Login> {
   final formKey = GlobalKey<FormState>();
+
   final TextEditingController emailController = TextEditingController();
+
   final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    super.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LayoutBuilder(
+      body: BlocListener<AuthenticationBloc, AuthenticationState>(
+        listener: (context, state) {
+          if(state is LoginSuccess){
+            // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Login Success')));
+            showCustomSnackbar(context, 'Login Success');
+            Navigator.of(context).push(MaterialPageRoute(builder: (context)=> HomeScreen()));
+          }else if(state is LoginLoading){
+            const Center(child: CircularProgressIndicator(),);
+          }
+          else if(state is LoginFailture){
+            showCustomSnackbar(context, 'Invalid Data',isError: false);
+          }
+        },
+        child: LayoutBuilder(
         builder: (context, constraints) {
           return Column(
             children: [
@@ -60,13 +94,13 @@ class Login extends StatelessWidget {
                               style: TextStyle(fontSize: 16),
                             ),
                             const SizedBox(height: 20),
-                            const Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                'Enter Email',
-                                style: normalHeading,
-                              ),
-                            ),
+                            // const Align(
+                            //   alignment: Alignment.centerLeft,
+                            //   child: Text(
+                            //     'Enter Email',
+                            //     style: normalHeading,
+                            //   ),
+                            // ),
                             const SizedBox(
                               height: 5,
                             ),
@@ -84,20 +118,20 @@ class Login extends StatelessWidget {
                               },
                             ),
                             const SizedBox(height: 10),
-                            const Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                'Enter Password',
-                                style: normalHeading,
-                              ),
-                            ),
+                            // const Align(
+                            //   alignment: Alignment.centerLeft,
+                            //   child: Text(
+                            //     'Enter Password',
+                            //     style: normalHeading,
+                            //   ),
+                            // ),
                             const SizedBox(
                               height: 5,
                             ),
                             CustomTextfield(
                               controller: passwordController,
                               labelText: 'Password',
-                              keyboardType: TextInputType.number,
+                              keyboardType: TextInputType.text,
                               isPassword: true,
                               autoFocus: false,
                               validator: (value) {
@@ -121,7 +155,15 @@ class Login extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: TextButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+
+                                      if(formKey.currentState!.validate()){
+
+                                         context.read<AuthenticationBloc>().add(SignInEvent(email: emailController.text, password: passwordController.text));
+                                      }
+                                     
+                                      
+                                    },
                                     style: redTextButton,
                                     child:const Text('Login',style: submit,),
                                   ),
@@ -153,6 +195,7 @@ class Login extends StatelessWidget {
           );
         },
       ),
+      )
     );
   }
 }
