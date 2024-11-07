@@ -41,9 +41,9 @@ class ForgotPasswordLoading extends AuthenticationState {}
 
 class ForgotPasswordSuccess extends AuthenticationState {}
 
-class ForgotPasswordFailture extends AuthenticationState {
+class ForgotPasswordFailure extends AuthenticationState {
   final String error;
-  const ForgotPasswordFailture({required this.error});
+  const ForgotPasswordFailure({required this.error});
 
   @override
   List<Object> get props => [error];

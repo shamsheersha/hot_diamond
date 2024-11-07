@@ -73,7 +73,7 @@ class _PhoneNumberWidgetState extends State<PhoneNumberWidget> {
             validator: (value) {
               if(value == null || value.isEmpty)return 'Phone number is required';
               if(value.length != _getValidPhoneNumberLength(_selectedCountry.countryCode)){
-                return 'Phone number should be ${_getValidPhoneNumberLength(_selectedCountry.countryCode)}digits';
+                return 'Phone number should be ${_getValidPhoneNumberLength(_selectedCountry.countryCode)} digits';
               }return null;
             },
             

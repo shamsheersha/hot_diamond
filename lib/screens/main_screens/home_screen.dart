@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_bloc.dart';
-import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_event.dart';
-import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_state.dart';
-import 'package:hot_diamond_users/screens/login_signup/login.dart';
+import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_bloc.dart';
+import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_event.dart';
+import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_state.dart';
+
+import 'package:hot_diamond_users/screens/login_signup/login/login.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

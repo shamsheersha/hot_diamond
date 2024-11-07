@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_bloc.dart';
-import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_event.dart';
-import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_state.dart';
-
+import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_bloc.dart';
+import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_event.dart';
+import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_state.dart';
 import 'package:hot_diamond_users/utils/fonts/fonts.dart';
 import 'package:hot_diamond_users/utils/style/style.dart';
 import 'package:hot_diamond_users/widgets/custom_textfield.dart';
@@ -11,19 +10,23 @@ import 'package:hot_diamond_users/widgets/show_custom%20_snakbar.dart';
 
 class ForgotPassword extends StatelessWidget {
   ForgotPassword({super.key});
+
   final TextEditingController _emailController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  // Regex pattern for basic email validation
+  final String emailPattern =
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
       body: BlocListener<AuthenticationBloc, AuthenticationState>(
         listener: (context, state) {
           if (state is ForgotPasswordSuccess) {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(const SnackBar(content: Text('Check mail')));
-          }else if(state is ForgotPasswordLoading){
-            const Center(child: CircularProgressIndicator(),);
-          } else if (state is ForgotPasswordFailture) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Please check your email')));
+          } else if (state is ForgotPasswordFailure) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(state.error)));
           }
@@ -32,10 +35,11 @@ class ForgotPassword extends StatelessWidget {
           return Column(
             children: [
               Image.asset(
-                  'assets/840ccc14-b0e1-4ec2-8b65-3332ab05c32b_page-0003.png',
-                  width: double.infinity,
-                  height: 280,
-                  fit: BoxFit.cover),
+                'assets/840ccc14-b0e1-4ec2-8b65-3332ab05c32b_page-0003.png',
+                width: double.infinity,
+                height: 280,
+                fit: BoxFit.cover,
+              ),
               Expanded(
                 child: Container(
                   width: double.infinity,
@@ -50,27 +54,25 @@ class ForgotPassword extends StatelessWidget {
                     ],
                     color: Colors.white,
                     borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30)),
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: SingleChildScrollView(
                       child: Form(
+                        key: _formKey,
                         child: Column(
                           children: [
                             const Text(
                               'Forgot Password',
                               style: AppTextStyle.mainHeading,
                             ),
-                            const SizedBox(
-                              height: 10,
-                            ),
+                            const SizedBox(height: 10),
                             const Text(
-                                'Please sign in to your existing account'),
-                            const SizedBox(
-                              height: 20,
-                            ),
+                                'Please enter your email to reset password'),
+                            const SizedBox(height: 20),
                             const Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
@@ -78,9 +80,7 @@ class ForgotPassword extends StatelessWidget {
                                 style: AppTextStyle.normalHeading,
                               ),
                             ),
-                            const SizedBox(
-                              height: 5,
-                            ),
+                            const SizedBox(height: 5),
                             CustomTextfield(
                               controller: _emailController,
                               labelText: 'Email',
@@ -90,13 +90,15 @@ class ForgotPassword extends StatelessWidget {
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return "Enter Email";
+                                } else if (!RegExp(emailPattern)
+                                    .hasMatch(value)) {
+                                  return "Enter a valid email address";
                                 }
                                 return null;
                               },
+                              hintText: 'Email',
                             ),
-                            const SizedBox(
-                              height: 10,
-                            ),
+                            const SizedBox(height: 20),
                             Row(
                               children: [
                                 Expanded(
@@ -108,10 +110,11 @@ class ForgotPassword extends StatelessWidget {
                                                 is ForgotPasswordLoading
                                             ? null
                                             : () {
-                                                final email =
-                                                    _emailController.text;
-                                                if (email.isNotEmpty &&
-                                                    email.contains('@')) {
+                                                // Validate form fields
+                                                if (_formKey.currentState!
+                                                    .validate()) {
+                                                  final email =
+                                                      _emailController.text;
                                                   context
                                                       .read<
                                                           AuthenticationBloc>()
@@ -119,7 +122,7 @@ class ForgotPassword extends StatelessWidget {
                                                           email: email));
                                                 } else {
                                                   showCustomSnackbar(context,
-                                                      'Please enter a valid email');
+                                                      'Please enter a valid Email');
                                                 }
                                               },
                                         style: redTextButton,
@@ -130,9 +133,9 @@ class ForgotPassword extends StatelessWidget {
                                       );
                                     },
                                   ),
-                                )
+                                ),
                               ],
-                            )
+                            ),
                           ],
                         ),
                       ),

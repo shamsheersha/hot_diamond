@@ -1,8 +1,9 @@
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
-import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_event.dart';
-import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_state.dart';
+
+import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_event.dart';
+import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_state.dart';
 import 'package:hot_diamond_users/services/auth_repository.dart';
 
 
@@ -24,10 +25,11 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     //! Login Event
     on<SignInEvent>((event,emit)async{
       emit(LoginLoading());
-      
+      log('login loading');
       try{
         await authRepository.logIn(email: event.email, password: event.password);
         emit(LoginSuccess());
+        log('logged');
       }catch(e){
         emit(LoginFailture(error:  e.toString()));
       }
@@ -41,7 +43,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         await authRepository.forgotPassword(event.email);
         emit(ForgotPasswordSuccess());
       }catch (e){
-        emit(ForgotPasswordFailture(error:  e.toString()));
+        emit(ForgotPasswordFailure(error:  e.toString()));
       }
     },);
 

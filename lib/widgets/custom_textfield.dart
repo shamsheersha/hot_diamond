@@ -11,14 +11,14 @@ class CustomTextfield extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   const CustomTextfield(
       {super.key,
-      this.controller,
-      this.hintText,
-      this.labelText,
+       this.controller,
+       this.hintText,
+       this.labelText,
       required this.keyboardType,
       required this.isPassword,
       required this.autoFocus,
-      this.validator,
-      this.onChanged});
+       this.validator,
+       this.onChanged});
 
   @override
   State<CustomTextfield> createState() => _CustomTextfieldState();
@@ -41,7 +41,7 @@ class _CustomTextfieldState extends State<CustomTextfield> {
       decoration: InputDecoration(
         labelText: widget.labelText,
         hintText: widget.hintText,
-        border: const OutlineInputBorder(),
+        border:const OutlineInputBorder(),
         suffixIcon: widget.isPassword
             ? IconButton(
                 icon:
@@ -53,13 +53,17 @@ class _CustomTextfieldState extends State<CustomTextfield> {
                 },
               )
             : null,
-        focusedBorder: const OutlineInputBorder(
+
+            focusedBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Colors.black, width: 2.0),
+          borderRadius: BorderRadius.all(Radius.circular(12))
         ),
         enabledBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Colors.grey, width: 1.0),
+          borderRadius: BorderRadius.all(Radius.circular(12))
         ),
-        labelStyle: const TextStyle(color: Colors.black),
+        labelStyle:const TextStyle(color: Colors.black),
+        
       ),
     );
   }

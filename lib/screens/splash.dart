@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hot_diamond_users/blocs/splash/splash_bloc.dart';
-import 'package:hot_diamond_users/screens/login_signup/login.dart';
+import 'package:hot_diamond_users/screens/login_signup/login/login.dart';
 
 class Splash extends StatelessWidget {
   const Splash({super.key});
