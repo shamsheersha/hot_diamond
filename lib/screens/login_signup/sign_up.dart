@@ -3,11 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_bloc.dart';
 import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_event.dart';
 import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_state.dart';
-import 'package:hot_diamond_users/fonts/fonts.dart';
+import 'package:hot_diamond_users/utils/fonts/fonts.dart';
 import 'package:hot_diamond_users/screens/login_signup/login.dart';
-import 'package:hot_diamond_users/style/style.dart';
+import 'package:hot_diamond_users/utils/style/style.dart';
 import 'package:hot_diamond_users/widgets/custom_textfield.dart';
 import 'package:hot_diamond_users/widgets/phone_numberwidget.dart';
+import 'package:hot_diamond_users/widgets/show_custom%20_snakbar.dart';
 
 class SignUp extends StatelessWidget {
   SignUp({super.key});
@@ -27,7 +28,11 @@ class SignUp extends StatelessWidget {
       listener: (context, state) {
         if (state is SignUpSuccess) {
           Navigator.pop(context);
-        } else if (state is SignUpFailture) {
+          showCustomSnackbar(context, 'Sign Up Successfull!');
+        } else if(state is SignUpLoading){
+          const Center(child: CircularProgressIndicator(),);
+        }
+        else if (state is SignUpFailture) {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(state.error)));
         }
@@ -68,7 +73,7 @@ class SignUp extends StatelessWidget {
                         children: [
                           const Text(
                             'Sign Up',
-                            style: mainHeading,
+                            style:AppTextStyle.mainHeading ,
                           ),
                           const SizedBox(
                             height: 5,
@@ -87,6 +92,7 @@ class SignUp extends StatelessWidget {
                             controller: _nameController,
                             hintText: 'Name',
                             labelText: 'Name',
+                            validator: (value) => value == null || value.isEmpty ? 'Name is required' : null,
                           ),
                           const SizedBox(height: 10),
                           CustomTextfield(
@@ -96,60 +102,42 @@ class SignUp extends StatelessWidget {
                             controller: _emailController,
                             hintText: 'Email',
                             labelText: 'Email',
+                            validator: (value) => value == null || !value.contains('@') ? 'Valid email required' : null,
                           ),
                           const SizedBox(height: 10),
                           CustomTextfield(
-                            keyboardType: TextInputType.emailAddress,
+                            keyboardType: TextInputType.visiblePassword,
                             isPassword: true,
                             autoFocus: false,
                             controller: _passwordController,
                             hintText: 'Password',
                             labelText: 'Password',
+                            validator: (value) => value != null && value.length < 6 ? 'Passwrd must more than 6 digits': null,
                           ),
                           const SizedBox(height: 10),
                           CustomTextfield(
-                            keyboardType: TextInputType.emailAddress,
-                            isPassword: false,
+                            keyboardType: TextInputType.visiblePassword,
+                            isPassword: true,
                             autoFocus: false,
                             controller: _confirmPasswordController,
                             hintText: 'Confirm Password',
                             labelText: 'Confirm Password',
+                            validator: (value){
+                              if(value == null || value.trim().isEmpty){
+                                return 'Confirm password is required';
+                              }else if(value != _passwordController.text){
+                                return 'Passwords do not match';
+                              }return null;
+                            },
                           ),
                           const SizedBox(
                             height: 10,
                           ),
                           PhoneNumberWidget(controller: _phoneNumberController),
                           const SizedBox(
-                            height: 10,
+                            height: 20,
                           ),
-                          // Row(
-                          //   children: [
-                          //     Expanded(
-                          //       child: CustomTextfield(
-                          //         keyboardType: TextInputType.emailAddress,
-                          //         isPassword: false,
-                          //         autoFocus: false,
-                          //         controller: _genderController,
-                          //         hintText: 'Gender (Optional)',
-                          //         labelText: 'Gender ',
-                          //       ),
-                          //     ),
-                          //     SizedBox(width: 5,),
-                          //     Expanded(
-                          //       child: CustomTextfield(
-                          //         keyboardType: TextInputType.emailAddress,
-                          //         isPassword: false,
-                          //         autoFocus: false,
-                          //         controller: _dateOfBirthController,
-                          //         hintText: 'Date of Birth (Optional)',
-                          //         labelText: 'Date of Birth',
-                          //       ),
-                          //     ),
-                          //   ],
-                          // ),
-                          const SizedBox(
-                            height: 10,
-                          ),
+                          
                           Row(
                             children: [
                               Expanded(
@@ -165,7 +153,7 @@ class SignUp extends StatelessWidget {
                                   style: redTextButton,
                                   child: const Text(
                                     'Login',
-                                    style: submit,
+                                    style: AppTextStyle.submit,
                                   ),
                                 ),
                               ),

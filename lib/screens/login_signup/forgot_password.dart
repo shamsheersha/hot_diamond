@@ -4,8 +4,8 @@ import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_bloc.dart'
 import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_event.dart';
 import 'package:hot_diamond_users/blocs/auth/auth_bloc/authentication_state.dart';
 
-import 'package:hot_diamond_users/fonts/fonts.dart';
-import 'package:hot_diamond_users/style/style.dart';
+import 'package:hot_diamond_users/utils/fonts/fonts.dart';
+import 'package:hot_diamond_users/utils/style/style.dart';
 import 'package:hot_diamond_users/widgets/custom_textfield.dart';
 import 'package:hot_diamond_users/widgets/show_custom%20_snakbar.dart';
 
@@ -14,13 +14,15 @@ class ForgotPassword extends StatelessWidget {
   final TextEditingController _emailController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return Scaffold(
       body: BlocListener<AuthenticationBloc, AuthenticationState>(
         listener: (context, state) {
           if (state is ForgotPasswordSuccess) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(const SnackBar(content: Text('Check mail')));
+          }else if(state is ForgotPasswordLoading){
+            const Center(child: CircularProgressIndicator(),);
           } else if (state is ForgotPasswordFailture) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(state.error)));
@@ -59,7 +61,7 @@ class ForgotPassword extends StatelessWidget {
                           children: [
                             const Text(
                               'Forgot Password',
-                              style: mainHeading,
+                              style: AppTextStyle.mainHeading,
                             ),
                             const SizedBox(
                               height: 10,
@@ -73,7 +75,7 @@ class ForgotPassword extends StatelessWidget {
                               alignment: Alignment.centerLeft,
                               child: Text(
                                 'Enter Email',
-                                style: normalHeading,
+                                style: AppTextStyle.normalHeading,
                               ),
                             ),
                             const SizedBox(
@@ -121,14 +123,10 @@ class ForgotPassword extends StatelessWidget {
                                                 }
                                               },
                                         style: redTextButton,
-                                        child: state is ForgotPasswordLoading
-                                            ? const CircularProgressIndicator(
-                                                color: Colors.white,
-                                              )
-                                            : const Text(
-                                                'Submit',
-                                                style: submit,
-                                              ),
+                                        child: const Text(
+                                          'Submit',
+                                          style: AppTextStyle.submit,
+                                        ),
                                       );
                                     },
                                   ),

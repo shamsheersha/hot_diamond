@@ -120,31 +120,40 @@ class AuthRepository {
 
   //! GOOGLE SIGN-IN METHOD
   Future<User?> googleSignIn() async {
-    try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if(googleUser == null){
-        throw Exception('Google Sign-In aborted');
-      }
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-      final AuthCredential credential = GoogleAuthProvider.credential(accessToken:  googleAuth.accessToken,idToken:  googleAuth.idToken);
-
-      UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
-
-
-      if(userCredential.additionalUserInfo?.isNewUser  ?? false){
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'name': userCredential.user!.displayName,
-          'email': userCredential.user!.email,
-          'phoneNumber': userCredential.user!.phoneNumber
-        });
-      }
-      return userCredential.user;
-    } catch (e) {
-      log("GOOGLE AUTHORISATION ERROR");
-      handleError("Error: Something went wrong");
+  try {
+    await _googleSignIn.signOut();
+    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) {
+      throw Exception('Google Sign-In was canceled by the user');
     }
-    return null;
+
+    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+    if (googleAuth.accessToken == null || googleAuth.idToken == null) {
+      throw Exception('Failed to retrieve Google token');
+    }
+
+    final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
+
+    UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+
+    if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'name': userCredential.user!.displayName,
+        'email': userCredential.user!.email,
+        'phoneNumber': userCredential.user!.phoneNumber
+      });
+    }
+    return userCredential.user;
+  } on FirebaseAuthException catch (e) {
+    log('GOOGLE AUTH ERROR: ${e.message}');
+    handleError('Google Login Failed: ${e.message}');
+  } catch (e) {
+    log('GOOGLE AUTHORISATION ERROR: ${e.toString()}');
+    handleError('Error: Something went wrong');
   }
+  return null;
+}
+
 }
