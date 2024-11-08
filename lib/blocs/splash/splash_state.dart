@@ -14,4 +14,3 @@ part of 'splash_bloc.dart';
   }
 }
 
-

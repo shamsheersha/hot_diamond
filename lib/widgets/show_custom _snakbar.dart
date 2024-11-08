@@ -20,7 +20,7 @@ showCustomSnackbar(BuildContext context, String message,
       ],
     ),
     backgroundColor: isError? Colors.black : Colors.black,
-    duration: const Duration(seconds: 3),
+    duration: const Duration(seconds: 2),
     behavior: SnackBarBehavior.floating,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10)

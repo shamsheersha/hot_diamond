@@ -16,7 +16,9 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
       try{
         await authRepository.signUp(name: event.name, email: event.email, password: event.password, phoneNumber: event.phoneNumber);
+        
         emit(SignUpSuccess());
+        await authRepository.signOut();
       }catch(e){
         emit(SignUpFailture(error: e.toString()));
       }
@@ -28,6 +30,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       log('login loading');
       try{
         await authRepository.logIn(email: event.email, password: event.password);
+        
         emit(LoginSuccess());
         log('logged');
       }catch(e){
@@ -51,6 +54,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       emit(LogOutLoading());
       try {
         await authRepository.signOut();
+        
         emit(LogOutSuccess());
         log('Log out');
       } catch (e) {

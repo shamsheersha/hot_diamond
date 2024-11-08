@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:hot_diamond_users/screens/login_signup/forgot_password/forgot_password.dart';
+import 'package:hot_diamond_users/screens/authentication_screens/login_signup/forgot_password/forgot_password.dart';
 import 'package:hot_diamond_users/utils/style/style.dart';
 import 'package:hot_diamond_users/utils/fonts/fonts.dart';
 import 'package:hot_diamond_users/widgets/custom_Button.dart';
 import 'package:hot_diamond_users/widgets/google_button_widget.dart';
 import 'package:hot_diamond_users/widgets/custom_textfield.dart';
-import 'package:hot_diamond_users/screens/login_signup/sign_up/sign_up.dart';
+import 'package:hot_diamond_users/screens/authentication_screens/login_signup/sign_up/sign_up.dart';
 
 // Login Form Widget
 class LoginForm extends StatelessWidget {

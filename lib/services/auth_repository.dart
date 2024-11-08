@@ -6,6 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthRepository {
   final FirebaseAuth _firebaseAuth;
+  User? get currentUser => _firebaseAuth.currentUser;
   final FirebaseFirestore _firestore;
   final GoogleSignIn _googleSignIn;
 
@@ -17,6 +18,7 @@ class AuthRepository {
         _firestore = firestore ?? FirebaseFirestore.instance,
         _googleSignIn = googleSignIn ?? GoogleSignIn();
 
+  
   // For handling errors without the "Exception:" prefix
   void handleError(String errorMessage) {
     log(errorMessage); // Log the error

@@ -1,9 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_bloc.dart';
 import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_event.dart';
 import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_state.dart';
-import 'package:hot_diamond_users/screens/login_signup/login/widget.dart';
+import 'package:hot_diamond_users/screens/authentication_screens/login_signup/login/widget.dart';
 import 'package:hot_diamond_users/screens/main_screens/home_screen.dart';
 import 'package:hot_diamond_users/widgets/show_custom%20_snakbar.dart';
 
@@ -49,7 +51,7 @@ class _LoginState extends State<Login> {
           } else if (state is LoginLoading) {
             showCustomSnackbar(context, 'Loading...');
           } else if (state is LoginFailture) {
-            showCustomSnackbar(context, 'Invalid email or password',
+            showCustomSnackbar(context, state.error,
                 isError: true);
           }
         },

@@ -5,7 +5,7 @@ import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_
 import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_event.dart';
 import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_state.dart';
 
-import 'package:hot_diamond_users/screens/login_signup/login/login.dart';
+import 'package:hot_diamond_users/screens/authentication_screens/login_signup/login/login.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

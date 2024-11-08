@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
               create: (context) => AuthenticationBloc(authRepository: auth)),
         ],
         child: MaterialApp(
-            title: 'HOt Diamond Users',
+            title: 'Hot Diamond Users',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
                 primaryColor: Colors.red,

@@ -17,10 +17,6 @@ class _PhoneNumberWidgetState extends State<PhoneNumberWidget> {
   //  phone number lengths for different countries
   Map<String, int> countryPhoneLengths = {
     'IN': 10, // India
-    'US': 10, // USA
-    'GB': 10, // UK
-    'CA': 10, // Canada
-    'DE': 11, // Germany
     'SA': 9, //Saudi Arabia
   };
 
@@ -80,7 +76,7 @@ class _PhoneNumberWidgetState extends State<PhoneNumberWidget> {
             decoration: InputDecoration(
               labelText: 'Phone number',
               hintText: 'Phone number',
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
               focusedBorder: const OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.black, width: 2.0),
               ),
