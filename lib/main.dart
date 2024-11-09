@@ -5,9 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_bloc.dart';
-
 import 'package:hot_diamond_users/blocs/splash/splash_bloc.dart';
-import 'package:hot_diamond_users/screens/splash.dart';
+import 'package:hot_diamond_users/screens/splash_screen.dart/splash.dart';
 import 'package:hot_diamond_users/services/auth_repository.dart';
 
 void main() async {
@@ -27,6 +26,10 @@ void main() async {
     } else {
       await Firebase.initializeApp();
     }
+
+    // Ensure FirebaseAuth persists the session across app restarts
+    // await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+
   } catch (e) {
     log('Firebase Initialization error $e');
   }
@@ -51,6 +54,7 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
                 primaryColor: Colors.red,
+                appBarTheme: const AppBarTheme(color: Colors.red),
                 scaffoldBackgroundColor: Colors.white),
             home: const Splash()));
   }

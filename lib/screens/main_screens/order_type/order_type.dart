@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hot_diamond_users/screens/main_screens/home_screen.dart';
+import 'package:hot_diamond_users/screens/main_screens/home/home_screen.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class OrderType extends StatelessWidget {
@@ -49,11 +49,11 @@ class OrderType extends StatelessWidget {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=> HomeScreen()));
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=> const HomeScreen()));
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
-                          backgroundColor: Colors.grey, // Icon and text color
+                          backgroundColor: Colors.black, // Icon and text color
                           padding: const EdgeInsets.symmetric(
                               vertical: 12), // Padding around the button
                           shape: RoundedRectangleBorder(
@@ -62,7 +62,7 @@ class OrderType extends StatelessWidget {
                           ),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 10),
+                          padding: const EdgeInsets.only(left: 15),
                           child: Row(
                             mainAxisAlignment:
                                 MainAxisAlignment.start, // Align to the left
@@ -77,11 +77,11 @@ class OrderType extends StatelessWidget {
                       const SizedBox(height: 10,),
                       ElevatedButton(
                         onPressed: () {
-                           Navigator.of(context).push(MaterialPageRoute(builder: (context)=> HomeScreen()));
+                           Navigator.of(context).push(MaterialPageRoute(builder: (context)=> const HomeScreen()));
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
-                          backgroundColor: Colors.grey, // Icon and text color
+                          backgroundColor: Colors.black, // Icon and text color
                           padding: const EdgeInsets.symmetric(
                               vertical: 12), // Padding around the button
                           shape: RoundedRectangleBorder(
@@ -90,7 +90,7 @@ class OrderType extends StatelessWidget {
                           ),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 10),
+                          padding: const EdgeInsets.only(left: 15),
                           child: Row(
                             mainAxisAlignment:
                                 MainAxisAlignment.start, // Align to the left

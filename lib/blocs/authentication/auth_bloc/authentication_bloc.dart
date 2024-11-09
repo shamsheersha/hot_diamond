@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_event.dart';
 import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_state.dart';
@@ -66,10 +67,14 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     on<GoogleSignInEvent>((event, emit) async {
       emit(GoogleLogInLoading());
       try {
-        await authRepository.googleSignIn();
-        emit(GoogleLogInSuccess());
+        // await authRepository.googleSignIn();
+        User? user = await authRepository.googleSignIn();
+        if(user != null){
+          emit(GoogleLogInSuccess());
+        }
+        
       } catch (e) {
-        emit(GoogleLogInFailture(error:  e.toString()));
+        emit(GoogleLogInFailture(error: e.toString()));
       }
     });
   }

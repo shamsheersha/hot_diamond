@@ -24,8 +24,7 @@ class ForgotPassword extends StatelessWidget {
       body: BlocListener<AuthenticationBloc, AuthenticationState>(
         listener: (context, state) {
           if (state is ForgotPasswordSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Please check your email')));
+            showCustomSnackbar(context, 'Please check your Gmail');
           } else if (state is ForgotPasswordFailure) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(state.error)));

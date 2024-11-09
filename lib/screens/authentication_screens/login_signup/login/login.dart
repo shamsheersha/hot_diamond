@@ -6,7 +6,8 @@ import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_
 import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_event.dart';
 import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_state.dart';
 import 'package:hot_diamond_users/screens/authentication_screens/login_signup/login/widget.dart';
-import 'package:hot_diamond_users/screens/main_screens/home_screen.dart';
+import 'package:hot_diamond_users/screens/main_screens/home/home_screen.dart';
+import 'package:hot_diamond_users/screens/main_screens/order_type/order_type.dart';
 import 'package:hot_diamond_users/widgets/show_custom%20_snakbar.dart';
 
 class Login extends StatefulWidget {
@@ -47,7 +48,7 @@ class _LoginState extends State<Login> {
           if (state is LoginSuccess) {
             showCustomSnackbar(context, 'Login Success');
             Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const HomeScreen()));
+                MaterialPageRoute(builder: (context) => const OrderType()));
           } else if (state is LoginLoading) {
             showCustomSnackbar(context, 'Loading...');
           } else if (state is LoginFailture) {

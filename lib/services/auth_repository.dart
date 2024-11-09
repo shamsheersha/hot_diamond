@@ -18,7 +18,6 @@ class AuthRepository {
         _firestore = firestore ?? FirebaseFirestore.instance,
         _googleSignIn = googleSignIn ?? GoogleSignIn();
 
-  
   // For handling errors without the "Exception:" prefix
   void handleError(String errorMessage) {
     log(errorMessage); // Log the error
@@ -122,40 +121,60 @@ class AuthRepository {
 
   //! GOOGLE SIGN-IN METHOD
   Future<User?> googleSignIn() async {
-  try {
-    await _googleSignIn.signOut();
-    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-    if (googleUser == null) {
-      throw Exception('Google Sign-In was canceled by the user');
+    try {
+      await _googleSignIn.signOut();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        throw Exception('Google Sign-In was canceled by the user');
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      if (googleAuth.accessToken == null || googleAuth.idToken == null) {
+        throw Exception('Failed to retrieve Google token');
+      }
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
+
+      UserCredential userCredential =
+          await _firebaseAuth.signInWithCredential(credential);
+
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        await _firestore.collection('users').doc(userCredential.user!.uid).set({
+          'name': userCredential.user!.displayName,
+          'email': userCredential.user!.email,
+          'phoneNumber': userCredential.user!.phoneNumber
+        });
+      }
+      return userCredential.user;
+    } on FirebaseAuthException catch (e) {
+      log('GOOGLE AUTH ERROR: ${e.message}');
+      handleError('Google Login Failed: ${e.message}');
+    } catch (e) {
+      log('GOOGLE AUTHORISATION ERROR: ${e.toString()}');
+      handleError('Error: Something went wrong');
     }
+    return null;
 
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-    if (googleAuth.accessToken == null || googleAuth.idToken == null) {
-      throw Exception('Failed to retrieve Google token');
-    }
-
-    final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
-
-    UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
-
-    if (userCredential.additionalUserInfo?.isNewUser ?? false) {
-      await _firestore.collection('users').doc(userCredential.user!.uid).set({
-        'name': userCredential.user!.displayName,
-        'email': userCredential.user!.email,
-        'phoneNumber': userCredential.user!.phoneNumber
-      });
-    }
-    return userCredential.user;
-  } on FirebaseAuthException catch (e) {
-    log('GOOGLE AUTH ERROR: ${e.message}');
-    handleError('Google Login Failed: ${e.message}');
-  } catch (e) {
-    log('GOOGLE AUTHORISATION ERROR: ${e.toString()}');
-    handleError('Error: Something went wrong');
+    
   }
-  return null;
-}
+  //! GET DATA FROM FIREBASE
 
+    Future<Map<String,dynamic>?> getUserDetails() async {
+      if(currentUser != null){
+        try{
+          DocumentSnapshot snapshot = await _firestore.collection('users').doc(currentUser!.uid).get();
+          if(snapshot.exists){
+            return snapshot.data() as Map<String,dynamic>;
+          }else{
+            return null;
+          }
+        }catch (e){
+          throw Exception('Error fetching user details: $e');
+        }
+      }
+      return null;
+    }
 }

@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_bloc.dart';
 import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_event.dart';
 import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_state.dart';
-import 'package:hot_diamond_users/screens/main_screens/home_screen.dart';
+import 'package:hot_diamond_users/screens/main_screens/order_type/order_type.dart';
 import 'package:hot_diamond_users/widgets/show_custom%20_snakbar.dart';
 
 class GoogleLoginButton extends StatelessWidget {
@@ -19,7 +19,8 @@ class GoogleLoginButton extends StatelessWidget {
       listener: (context, state) {
         if (state is GoogleLogInSuccess) {
           Navigator.of(context)
-              .push(MaterialPageRoute(builder: (context) => const HomeScreen()));
+              .push(MaterialPageRoute(builder: (context) => const OrderType
+              ()));
         } else if (state is GoogleLogInLoading) {
           const Center(
             child: CircularProgressIndicator(color: Colors.black,),

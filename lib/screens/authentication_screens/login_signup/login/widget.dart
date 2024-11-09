@@ -99,7 +99,7 @@ class LoginForm extends StatelessWidget {
   Widget buildSignUpButton(BuildContext context) {
     return Row(
       children: [
-        const Text("Don't have an account?"),
+        const Text("Don't have an account? "),
         TextButton(
           onPressed: () {
             Navigator.of(context).push(
