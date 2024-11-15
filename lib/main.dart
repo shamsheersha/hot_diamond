@@ -4,10 +4,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hot_diamond_users/blocs/authentication/auth_bloc/authentication_bloc.dart';
-import 'package:hot_diamond_users/blocs/splash/splash_bloc.dart';
-import 'package:hot_diamond_users/screens/splash_screen.dart/splash.dart';
-import 'package:hot_diamond_users/services/auth_repository.dart';
+import 'package:hot_diamond_users/src/controllers/location/location_bloc.dart';
+import 'package:hot_diamond_users/src/screens/home/splash/splash.dart';
+import 'package:hot_diamond_users/src/controllers/auth/authentication_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/splash/splash_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/user_details/user_details_bloc.dart';
+import 'package:hot_diamond_users/src/services/auth_repository.dart';
+import 'package:location/location.dart' as loc;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +32,6 @@ void main() async {
 
     // Ensure FirebaseAuth persists the session across app restarts
     // await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
-
   } catch (e) {
     log('Firebase Initialization error $e');
   }
@@ -43,11 +45,20 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = AuthRepository();
+     loc.Location locationService = loc.Location();
     return MultiBlocProvider(
         providers: [
           BlocProvider(create: (context) => SplashBloc()..add(StartSplash())),
           BlocProvider(
               create: (context) => AuthenticationBloc(authRepository: auth)),
+          BlocProvider(
+              create: (context) =>
+                  UserDetailsBloc(authRepository: AuthRepository())
+                    ..add(FetchUserDetails())),
+          BlocProvider(
+            create: (context) => LocationBloc(locationController:locationService ),
+            
+          )
         ],
         child: MaterialApp(
             title: 'Hot Diamond Users',

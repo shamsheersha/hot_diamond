@@ -12,25 +12,31 @@ class CustomButton extends StatelessWidget {
     required this.text,
     required this.onPressed,
     this.color = Colors.red,
-    this.textStyle = const TextStyle(color: Colors.white, fontSize: 16),
+    this.textStyle = const TextStyle(color: Colors.white, fontSize: 16,fontWeight: FontWeight.bold),
     this.padding = const EdgeInsets.symmetric(vertical: 15, horizontal: 24),
   });
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        padding: padding,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color,
+              padding: padding,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: onPressed,
+            child: Text(
+              text,
+              style: textStyle,
+            ),
+          ),
         ),
-      ),
-      onPressed: onPressed,
-      child: Text(
-        text,
-        style: textStyle,
-      ),
+      ],
     );
   }
 }
