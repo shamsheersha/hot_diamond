@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class CustomTextfield extends StatefulWidget {
-  final TextEditingController? controller;
-  final String? hintText;
-  final String? labelText;
+  final TextEditingController controller;
+  final String hintText;
+  final String labelText;
   final TextInputType? keyboardType;
   final bool isPassword;
   final bool? autoFocus;
@@ -13,14 +13,16 @@ class CustomTextfield extends StatefulWidget {
   final bool? readOnly;
   const CustomTextfield(
       {super.key,
-       this.controller,
-       this.hintText,
-       this.labelText,
-       this.keyboardType,
+      required this.controller,
+      required this.hintText,
+      required this.labelText,
+      this.keyboardType,
       required this.isPassword,
-       this.autoFocus,
-       this.validator,
-       this.onChanged,  this.decoration ,  this.readOnly });
+      this.autoFocus,
+      this.validator,
+      this.onChanged,
+      this.decoration,
+      this.readOnly});
 
   @override
   State<CustomTextfield> createState() => _CustomTextfieldState();
@@ -43,7 +45,7 @@ class _CustomTextfieldState extends State<CustomTextfield> {
       decoration: InputDecoration(
         labelText: widget.labelText,
         hintText: widget.hintText,
-        border:const OutlineInputBorder(),
+        border: const OutlineInputBorder(),
         suffixIcon: widget.isPassword
             ? IconButton(
                 icon:
@@ -55,17 +57,13 @@ class _CustomTextfieldState extends State<CustomTextfield> {
                 },
               )
             : null,
-
-            focusedBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.black, width: 2.0),
-          borderRadius: BorderRadius.all(Radius.circular(12))
-        ),
+        focusedBorder: const OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.black, width: 2.0),
+            borderRadius: BorderRadius.all(Radius.circular(12))),
         enabledBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey, width: 1.0),
-          borderRadius: BorderRadius.all(Radius.circular(12))
-        ),
-        labelStyle:const TextStyle(color: Colors.black),
-        
+            borderSide: BorderSide(color: Colors.grey, width: 1.0),
+            borderRadius: BorderRadius.all(Radius.circular(12))),
+        labelStyle: const TextStyle(color: Colors.black),
       ),
     );
   }

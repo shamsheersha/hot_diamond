@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:hot_diamond_users/src/model/user/user_model.dart';
 
 class AuthRepository {
   final FirebaseAuth _firebaseAuth;
@@ -24,11 +25,12 @@ class AuthRepository {
     throw errorMessage; // Directly throw the string error message
   }
 
-  Future<String?> signUp(
-      {required String name,
-      required String email,
-      required String password,
-      required String phoneNumber}) async {
+  Future<String?> signUp({
+    required String name,
+    required String email,
+    required String password,
+    required String phoneNumber,
+  }) async {
     if (name.isEmpty ||
         email.isEmpty ||
         password.isEmpty ||
@@ -41,29 +43,34 @@ class AuthRepository {
     }
 
     try {
-      //Create user in Firebase Auth
+      // Create user in Firebase Auth
       UserCredential userCredential = await _firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      // Store additional user info in Firebase
+      final userModel = UserModel(
+        uid: userCredential.user!.uid,
+        name: name,
+        email: email,
+        phoneNumber: phoneNumber,
+      );
+
+      // Store additional user info in Firestore
       await _firestore
           .collection('users')
-          .doc(userCredential.user!.uid)
-          .set({'name': name, 'email': email, 'phoneNumber': phoneNumber});
+          .doc(userModel.uid)
+          .set(userModel.toFirestore());
       return userCredential.user?.uid;
     } on FirebaseAuthException catch (e) {
-      log('SIGNUP AUTHORISATION ERROR');
       if (e.code == 'email-already-in-use') {
         handleError('Email is already in use.');
       } else if (e.code == 'invalid-email') {
         handleError('Email is not valid');
       } else if (e.code == 'weak-password') {
-        handleError('Pasword is weak');
+        handleError('Password is weak');
       } else {
         handleError('Sign-Up failed. Please try again.');
       }
     } catch (e) {
-      log('SIGNUP UNKNOWN ERROR');
       handleError('Error: Something went wrong');
     }
     return null;
@@ -172,33 +179,23 @@ class AuthRepository {
   }
 
 //! GET DATA FROM FIREBASE
-Future<Map<String, dynamic>?> getUserDetails() async {
-  final currentUser = FirebaseAuth.instance.currentUser;
+  Future<UserModel?> getUserDetails() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
 
-  if (currentUser != null) {
-    try {
-      DocumentSnapshot snapshot =
-          await _firestore.collection('users').doc(currentUser.uid).get();
-      if (snapshot.exists) {
-        // Safely access the fields and handle null values
-        var data = snapshot.data() as Map<String, dynamic>;
-
-        // Ensure that missing or null fields don't cause issues by providing default values
-        return {
-          'email': data['email'] ?? '',
-          'phoneNumber': data['phoneNumber'] ?? '', // Handle null phone number
-          'name': data['name'] ?? 'No Name', // If name is missing, provide a default value
-        };
-      } else {
-        return null; // User data not found
+    if (currentUser != null) {
+      try {
+        DocumentSnapshot snapshot =
+            await _firestore.collection('users').doc(currentUser.uid).get();
+        if (snapshot.exists) {
+          return UserModel.fromFirestore(snapshot);
+        } else {
+          return null; // User data not found
+        }
+      } catch (e) {
+        throw Exception('Error fetching user details: $e');
       }
-    } catch (e) {
-      throw Exception('Error fetching user details: $e');
     }
+    // If no current user is logged in
+    return null;
   }
-
-  // If no current user is logged in
-  return null;
-}
-
 }

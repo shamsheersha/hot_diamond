@@ -29,7 +29,7 @@ class SignUp extends StatelessWidget {
             showCustomSnackbar(context, 'Sign Up Successful!');
           } else if (state is SignUpLoading) {
             showCustomSnackbar(context, 'Loading...');
-          } else if (state is SignUpFailture) {
+          } else if (state is SignUpFailure) {
             showCustomSnackbar(context, state.error);
           }
         },

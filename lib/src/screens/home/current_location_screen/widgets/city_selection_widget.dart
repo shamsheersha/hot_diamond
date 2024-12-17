@@ -35,32 +35,36 @@ class CitySelectionWidget extends StatelessWidget {
 
   void _showCityModal(BuildContext context) {
     showModalBottomSheet(
+      backgroundColor: Colors.white,
       context: context,
       builder: (context) {
-        return ListView(
-          children: [
-            ListTile(
-              title: const Text("City 1"),
-              onTap: () {
-                onCitySelected("City 1");
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text("City 2"),
-              onTap: () {
-                onCitySelected("City 2");
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text("City 3"),
-              onTap: () {
-                onCitySelected("City 3");
-                Navigator.pop(context);
-              },
-            ),
-          ],
+        return SizedBox(
+          height: 200,
+          child: ListView(
+            children: [
+              ListTile(
+                title: const Text("City 1"),
+                onTap: () {
+                  onCitySelected("City 1");
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text("City 2"),
+                onTap: () {
+                  onCitySelected("City 2");
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text("City 3"),
+                onTap: () {
+                  onCitySelected("City 3");
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
         );
       },
     );

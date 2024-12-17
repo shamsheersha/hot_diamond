@@ -7,7 +7,7 @@ class CustomButtonStyles {
   // Elevated Button Style
   static ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
     foregroundColor: CustomColors.buttonTextColor, backgroundColor: CustomColors.accentColor, // Button text color
-    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Padding around the button
+    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16), // Padding around the button
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(12), // Rounded corners
     ),

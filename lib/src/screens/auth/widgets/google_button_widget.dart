@@ -26,7 +26,7 @@ class GoogleLoginButton extends StatelessWidget {
           const Center(
             child: CircularProgressIndicator(color: Colors.black,),
           );
-        } else if (state is GoogleLogInFailture) {
+        } else if (state is GoogleLogInFailure) {
           showCustomSnackbar(context, e.toString());
         }
       },

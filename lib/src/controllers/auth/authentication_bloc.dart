@@ -20,7 +20,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         
         emit(SignUpSuccess());
       }catch(e){
-        emit(SignUpFailture(error: e.toString()));
+        emit(SignUpFailure(error: e.toString()));
       }
     });
 
@@ -34,7 +34,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         emit(LoginSuccess());
         log('logged');
       }catch(e){
-        emit(LoginFailture(error:  e.toString()));
+        emit(LoginFailure(error:  e.toString()));
       }
     });
 
@@ -58,7 +58,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         emit(LogOutSuccess());
         log('Log out');
       } catch (e) {
-        emit(LogOutFailture(error: e.toString()));
+        emit(LogOutFailure(error: e.toString()));
       }
     });
 
@@ -73,7 +73,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         }
         
       } catch (e) {
-        emit(GoogleLogInFailture(error: e.toString()));
+        emit(GoogleLogInFailure(error: e.toString()));
       }
     });
   }

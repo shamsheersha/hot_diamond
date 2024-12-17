@@ -35,25 +35,29 @@ class AreaSelectionWidget extends StatelessWidget {
 
   void _showAreaModal(BuildContext context) {
     showModalBottomSheet(
+      backgroundColor: Colors.white,
       context: context,
       builder: (context) {
-        return ListView(
-          children: [
-            ListTile(
-              title: const Text("Area 1"),
-              onTap: () {
-                onAreaSelected("Area 1");
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text("Area 2"),
-              onTap: () {
-                onAreaSelected("Area 2");
-                Navigator.pop(context);
-              },
-            ),
-          ],
+        return SizedBox(
+          height: 200,
+          child: ListView(
+            children: [
+              ListTile(
+                title: const Text("Area 1"),
+                onTap: () {
+                  onAreaSelected("Area 1");
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: const Text("Area 2"),
+                onTap: () {
+                  onAreaSelected("Area 2");
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
         );
       },
     );

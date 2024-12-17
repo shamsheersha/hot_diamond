@@ -71,13 +71,13 @@ class ForgotPassword extends StatelessWidget {
                             ),
                             const SizedBox(height: 10),
                             const Text(
-                                'Please enter your email to reset password',style:CustomTextStyles.headline1,),
+                                'Please enter your email to reset password',style:CustomTextStyles.bodyText1,),
                             const SizedBox(height: 20),
                             const Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
                                 'Enter Email',
-                                style: CustomTextStyles.headline1
+                                style: CustomTextStyles.bodyText1
                               ),
                             ),
                             const SizedBox(height: 5),
@@ -128,7 +128,6 @@ class ForgotPassword extends StatelessWidget {
                                         style: CustomButtonStyles.elevatedButtonStyle,
                                         child: const Text(
                                           'Submit',
-                                          style: CustomTextStyles.buttonText,
                                         ),
                                       );
                                     },

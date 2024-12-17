@@ -18,8 +18,8 @@ class OrderTypeButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.grey,
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.grey.withOpacity(0.0),
         padding: const EdgeInsets.symmetric(vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),

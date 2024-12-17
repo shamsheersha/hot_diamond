@@ -7,6 +7,8 @@ class CustomColors {
 
   static const Color backgroundColor = Colors.white; // Light Grey (Used as background color for screens)
   static const Color textColor = Color(0xFF212121); // Dark Grey (Default text color)
+  static const Color iconColor = Color(0xFF212121); // Dark Grey (Default text color)
+
   static const Color buttonTextColor = Colors.white;
   static const Color redButtonTextColor = Colors.red; // White (Used for button text)
 

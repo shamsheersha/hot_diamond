@@ -52,7 +52,12 @@ class CustomTextStyles {
     fontWeight: FontWeight.bold,
     color: CustomColors.textColor,
   );
-
+ static const TextStyle locationName = TextStyle(
+    fontFamily: CustomFonts.roboto,
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    color: CustomColors.textColor,
+  );
   static const TextStyle profilePhone = TextStyle(
     fontFamily: CustomFonts.roboto,
     fontSize: 15,

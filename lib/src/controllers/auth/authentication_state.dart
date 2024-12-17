@@ -15,9 +15,9 @@ class SignUpLoading extends AuthenticationState {}
 
 class SignUpSuccess extends AuthenticationState {}
 
-class SignUpFailture extends AuthenticationState {
+class SignUpFailure extends AuthenticationState {
   final String error;
-  const SignUpFailture({required this.error});
+  const SignUpFailure({required this.error});
 
   @override
   List<Object> get props => [error];
@@ -28,9 +28,9 @@ class LoginLoading extends AuthenticationState {}
 
 class LoginSuccess extends AuthenticationState {}
 
-class LoginFailture extends AuthenticationState {
+class LoginFailure extends AuthenticationState {
   final String error;
-  const LoginFailture({required this.error});
+  const LoginFailure({required this.error});
 
   @override
   List<Object> get props => [error];
@@ -54,9 +54,9 @@ class LogOutLoading extends AuthenticationState {}
 
 class LogOutSuccess extends AuthenticationState {}
 
-class LogOutFailture extends AuthenticationState {
+class LogOutFailure extends AuthenticationState {
   final String error;
-  const LogOutFailture({required this.error});
+  const LogOutFailure({required this.error});
 
   @override
   List<Object> get props => [error];
@@ -67,9 +67,9 @@ class GoogleLogInLoading extends AuthenticationState {}
 
 class GoogleLogInSuccess extends AuthenticationState {}
 
-class GoogleLogInFailture extends AuthenticationState {
+class GoogleLogInFailure extends AuthenticationState {
   final String error;
-  const GoogleLogInFailture({required this.error});
+  const GoogleLogInFailure({required this.error});
 
   @override
   List<Object> get props => [error];

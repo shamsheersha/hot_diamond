@@ -48,7 +48,7 @@ class _LoginState extends State<Login> {
                 MaterialPageRoute(builder: (context) => const OrderType()));
           } else if (state is LoginLoading) {
             showCustomSnackbar(context, 'Loading...');
-          } else if (state is LoginFailture) {
+          } else if (state is LoginFailure) {
             showCustomSnackbar(context, state.error,
                 isError: true);
           }

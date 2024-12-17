@@ -18,14 +18,23 @@ class CurrentLocationScreen extends StatefulWidget {
   const CurrentLocationScreen({super.key, required this.userRepository});
 
   @override
+  // ignore: library_private_types_in_public_api
   _CurrentLocationScreenState createState() => _CurrentLocationScreenState();
 }
 
 class _CurrentLocationScreenState extends State<CurrentLocationScreen> {
-  final Completer<GoogleMapController> _mapController = Completer();
+   Completer<GoogleMapController>? _mapController = Completer();
   String selectedCity = "";
   String selectedArea = "";
+@override
+  void initState() {
+    super.initState();
+    _initializeMapController();
+  }
 
+  _initializeMapController(){
+    _mapController = Completer<GoogleMapController>();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,7 +55,7 @@ class _CurrentLocationScreenState extends State<CurrentLocationScreen> {
             return Stack(
               children: [
                 MapWidget(
-                  mapController: _mapController,
+                  mapController: _mapController!,
                   location: location,
                 ),
                 Positioned(
@@ -131,5 +140,10 @@ class _CurrentLocationScreenState extends State<CurrentLocationScreen> {
         },
       ),
     );
+  }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _initializeMapController();
   }
 }

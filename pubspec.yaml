@@ -50,6 +50,9 @@ dependencies:
   google_maps_flutter: ^2.9.0
   permission_handler: ^11.3.1
   geocoding: ^3.0.0
+  google_fonts: ^6.2.1
+  wolt_modal_sheet: ^0.9.4
+  carousel_slider: ^5.0.0
   
 
 dev_dependencies:
