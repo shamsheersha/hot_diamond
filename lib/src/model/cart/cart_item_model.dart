@@ -13,8 +13,7 @@ class CartItem {
     this.selectedVariation,
   });
 
-  factory CartItem.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+  factory CartItem.fromMap(Map<String, dynamic> data) {
     return CartItem(
       item: ItemModel.fromMap(data['item'] as Map<String, dynamic>),
       quantity: data['quantity'] as int,
@@ -24,7 +23,11 @@ class CartItem {
     );
   }
 
-  // Add copyWith method
+  factory CartItem.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return CartItem.fromMap(data);
+  }
+
   CartItem copyWith({
     ItemModel? item,
     int? quantity,

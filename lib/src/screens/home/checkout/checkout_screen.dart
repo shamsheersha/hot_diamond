@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/cart/cart_event.dart';
+import 'package:hot_diamond_users/src/controllers/order/order_bloc.dart';
+import 'package:hot_diamond_users/src/enum/checkout_enums.dart';
+import 'package:hot_diamond_users/src/screens/home/checkout/my_orders_screen.dart';
+import 'package:hot_diamond_users/src/screens/home/home_screen/home_screen.dart';
+import 'package:hot_diamond_users/widgets/show_custom%20_snakbar.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:hot_diamond_users/src/controllers/address/address_event.dart';
 import 'package:hot_diamond_users/src/controllers/cart/cart_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/cart/cart_state.dart';
@@ -8,6 +15,8 @@ import 'package:hot_diamond_users/src/controllers/address/address_state.dart';
 import 'package:hot_diamond_users/src/model/address/address_model.dart';
 import 'package:hot_diamond_users/src/model/cart/cart_item_model.dart';
 import 'package:hot_diamond_users/src/screens/home/address_screen/add_screen/add_address_screen.dart';
+
+const String razorpayApiKey = 'rzp_test_jIotm3SaZbXO9x';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -19,12 +28,84 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   int _currentStep = 0;
   Address? _selectedAddress;
-  String _selectedPaymentMethod = 'cod'; // Default payment method
+  String _selectedPaymentMethod = 'cod';
+  late Razorpay _razorpay;
 
   @override
   void initState() {
     super.initState();
     context.read<AddressBloc>().add(LoadAddresses());
+    _initializeRazorpay();
+  }
+
+  void _initializeRazorpay() {
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    showCustomSnackbar(context, 'Payment Successful! Order Placed.');
+    // clear cart items
+    context.read<CartBloc>().add(ClearCart());
+    // create order
+    final cartState = context.read<CartBloc>().state;
+    if (cartState is CartUpdated) {
+      // Calculate total amount
+      final totalAmount = cartState.items.fold(
+        0.0,
+        (sum, item) => sum + (item.totalPrice),
+      );
+
+      context.read<OrderBloc>().add(CreateOrder(
+          items: cartState.items,
+          deliveryAddress: _selectedAddress!,
+          totalAmount: totalAmount,
+          paymentMethod: PaymentMethod.razorpay));
+    }
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Payment Failed: ${response.message}'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('External Wallet Selected: ${response.walletName}'),
+      ),
+    );
+  }
+
+  void _startRazorpayPayment(double amount) {
+    var options = {
+      'key': razorpayApiKey,
+      'amount': (amount * 100).toInt(),
+      'name': 'Hot Diamond',
+      'description': 'Payment for Order',
+      'prefill': {'contact': _selectedAddress?.phoneNumber ?? '', 'email': ''},
+      'external': {
+        'wallets': ['paytm']
+      }
+    };
+
+    try {
+      _razorpay.open(options);
+    } catch (e) {
+      debugPrint('Error starting Razorpay: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to start payment. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -34,80 +115,98 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         title: const Text('Checkout'),
         backgroundColor: Colors.grey[100],
       ),
-      body: BlocBuilder<CartBloc, CartState>(
-        builder: (context, cartState) {
-          if (cartState is! CartUpdated) {
-            return const Center(child: CircularProgressIndicator());
+      body: BlocConsumer<OrderBloc, OrderState>(
+        listener: (context, state) {
+          if (state is OrderSuccess) {
+            showCustomSnackbar(context, 'Order placed successfully!');
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const FetchOrdersScreen()));
           }
+        },
+        builder: (context, state) {
+          if (state is OrderLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          return BlocBuilder<CartBloc, CartState>(
+            builder: (context, cartState) {
+              if (cartState is! CartUpdated) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          return Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: ColorScheme.light(
-                primary: Colors.red[700]!,
-                secondary: Colors.red[700]!,
-              ),
-            ),
-            child: Stepper(
-              currentStep: _currentStep,
-              onStepContinue: () {
-                if (_currentStep < 2) {
-                  setState(() => _currentStep++);
-                } else {
-                  _processOrder(cartState.items);
-                }
-              },
-              onStepCancel: () {
-                if (_currentStep > 0) {
-                  setState(() => _currentStep--);
-                }
-              },
-              steps: [
-                _buildDeliveryStep(),
-                _buildOrderSummaryStep(cartState.items),
-                _buildPaymentStep(),
-              ],
-              controlsBuilder: (context, details) {
-                return Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red[700],
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          onPressed: details.onStepContinue,
-                          child: Text(
-                            _currentStep == 2 ? 'Place Order' : 'Continue',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                      if (_currentStep > 0) ...[
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              side: BorderSide(color: Colors.red[700]!),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+              return Theme(
+                data: Theme.of(context).copyWith(
+                  colorScheme: ColorScheme.light(
+                    primary: Colors.red[700]!,
+                    secondary: Colors.red[700]!,
+                  ),
+                ),
+                child: Stepper(
+                  currentStep: _currentStep,
+                  onStepContinue: () {
+                    if (_currentStep < 2) {
+                      setState(() => _currentStep++);
+                    } else {
+                      _processOrder(cartState.items);
+                    }
+                  },
+                  onStepCancel: () {
+                    if (_currentStep > 0) {
+                      setState(() => _currentStep--);
+                    }
+                  },
+                  steps: [
+                    _buildDeliveryStep(),
+                    _buildOrderSummaryStep(cartState.items),
+                    _buildPaymentStep(),
+                  ],
+                  controlsBuilder: (context, details) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red[700],
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: details.onStepContinue,
+                              child: Text(
+                                _currentStep == 2 ? 'Place Order' : 'Continue',
+                                style: const TextStyle(color: Colors.white),
                               ),
                             ),
-                            onPressed: details.onStepCancel,
-                            child: const Text('Back'),
                           ),
-                        ),
-                      ],
-                    ],
-                  ),
-                );
-              },
-            ),
+                          if (_currentStep > 0) ...[
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  side: BorderSide(color: Colors.red[700]!),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onPressed: details.onStepCancel,
+                                child: const Text('Back'),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
           );
         },
       ),
@@ -129,18 +228,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ...state.addresses.map((address) => _buildAddressCard(address)),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
-                  
                   onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const AddAddressScreen()));
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const AddAddressScreen(),
+                    ));
                   },
-                  
                   icon: const Icon(Icons.add),
                   label: const Text('Add New Address'),
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 12,horizontal: 92),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 92,
+                    ),
                     side: BorderSide(color: Colors.red[700]!),
                   ),
                 ),
@@ -178,7 +280,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Radio<String>(
                 value: address.id,
                 groupValue: _selectedAddress?.id,
-                onChanged: (value) => setState(() => _selectedAddress = address),
+                onChanged: (value) =>
+                    setState(() => _selectedAddress = address),
                 activeColor: Colors.red[700],
               ),
               Expanded(
@@ -251,10 +354,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Items list
           ...items.map((item) => _buildOrderItem(item)),
           const Divider(height: 32),
-          // Price breakdown
           _buildPriceRow('Total', total, isTotal: true),
         ],
       ),
@@ -262,7 +363,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       state: _currentStep > 1 ? StepState.complete : StepState.indexed,
     );
   }
-
 
   Widget _buildOrderItem(CartItem item) {
     return Padding(
@@ -344,17 +444,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
           const SizedBox(height: 12),
           _buildPaymentOption(
-            'UPI',
-            'upi',
+            'RAZORPAY',
+            'razorpay',
             Icons.payment,
-            'Pay using any UPI app',
-          ),
-          const SizedBox(height: 12),
-          _buildPaymentOption(
-            'Credit/Debit Card',
-            'card',
-            Icons.credit_card,
-            'Pay using credit or debit card',
+            'Pay using Razorpay',
           ),
         ],
       ),
@@ -425,39 +518,38 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void _processOrder(List<CartItem> items) {
     if (_selectedAddress == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a delivery address'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showCustomSnackbar(context, 'Please select a delivery address');
       setState(() => _currentStep = 0);
       return;
     }
 
-    // Here you would implement the order processing logic
-    // This might include:
-    // 1. Creating an order in your backend
-    // 2. Processing payment
-    // 3. Clearing the cart
-    // 4. Navigating to an order confirmation screen
-    
-    // For now, we'll just show a success message
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Order Placed Successfully'),
-        content: const Text('Thank you for your order!'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // Navigate back to home or order tracking screen
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+    // Calculate total amount
+    final totalAmount = items.fold(
+      0.0,
+      (sum, item) => sum + (item.totalPrice),
     );
+
+    if (_selectedPaymentMethod == 'razorpay') {
+      // Start Razorpay payment
+      _startRazorpayPayment(totalAmount);
+    } else if (_selectedPaymentMethod == 'cod') {
+      // clear cart
+      context.read<CartBloc>().add(ClearCart());
+      // create order
+      final cartState = context.read<CartBloc>().state;
+      if (cartState is CartUpdated) {
+        // Calculate total amount
+        final totalAmount = cartState.items.fold(
+          0.0,
+          (sum, item) => sum + (item.totalPrice),
+        );
+
+        context.read<OrderBloc>().add(CreateOrder(
+            items: cartState.items,
+            deliveryAddress: _selectedAddress!,
+            totalAmount: totalAmount,
+            paymentMethod: PaymentMethod.cod));
+      }
+    }
   }
 }

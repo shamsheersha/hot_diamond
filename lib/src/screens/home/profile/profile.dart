@@ -7,6 +7,7 @@ import 'package:hot_diamond_users/src/controllers/auth/authentication_state.dart
 import 'package:hot_diamond_users/src/controllers/user_details/user_details_bloc.dart';
 import 'package:hot_diamond_users/src/screens/home/address_screen/show_address_screen/show_address_screen.dart';
 import 'package:hot_diamond_users/src/screens/home/cart_page/cart_screen.dart';
+import 'package:hot_diamond_users/src/screens/home/checkout/my_orders_screen.dart';
 import 'package:hot_diamond_users/src/screens/home/favorite_items/favorite_items.dart';
 import 'package:hot_diamond_users/src/screens/home/home_screen/widget/user_avatar_widget.dart';
 import 'package:hot_diamond_users/src/screens/home/profile/widget/menu_button_widget.dart';
@@ -68,7 +69,9 @@ class Profile extends StatelessWidget {
         MenuButton(
           icon: Icons.list_alt_rounded,
           label: 'My Orders',
-          onPressed: () {},
+          onPressed: () {
+             Navigator.of(context).push(MaterialPageRoute(builder: (context)=>FetchOrdersScreen()));
+          },
         ),
         MenuButton(
           icon: Icons.favorite_border,
