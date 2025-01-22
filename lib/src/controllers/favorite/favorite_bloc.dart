@@ -5,7 +5,6 @@ import 'package:hot_diamond_users/src/controllers/favorite/favorite_event.dart';
 import 'package:hot_diamond_users/src/controllers/favorite/favorite_state.dart';
 import 'package:hot_diamond_users/src/model/item/item_model.dart';
 
-
 class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
   final FirebaseFirestore firestore;
   final FirebaseAuth auth;
@@ -17,10 +16,11 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
     on<RemoveFromFavorites>(_removeFromFavorites);
   }
 
-  // Load Favorites for the logged-in user
   Future<void> _loadFavorites(
       LoadFavorites event, Emitter<FavoriteState> emit) async {
-    emit(FavoritesLoading());
+    if (state is! FavoritesLoaded) {
+      emit(FavoritesLoading());
+    }
 
     try {
       final userId = auth.currentUser?.uid;
@@ -42,50 +42,60 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
     }
   }
 
-  // Add item to Favorites
   Future<void> _addToFavorites(
       AddToFavorites event, Emitter<FavoriteState> emit) async {
-    try {
-      final userId = auth.currentUser?.uid;
-      if (userId == null) throw Exception("User not logged in");
+    if (state is FavoritesLoaded) {
+      final currentState = state as FavoritesLoaded;
+      final updatedFavorites = List<ItemModel>.from(currentState.favorites)
+        ..add(event.item);
 
-      final item = event.item; 
-      await firestore
-          .collection('users')
-          .doc(userId)
-          .collection('favorites')
-          .doc(item.id)
-          .set({
-        'name': item.name,
-        'description': item.description,
-        'price': item.price,
-        'categoryId': item.categoryId,
-        'imageUrls': item.imageUrls,
-      });
+      // Emit optimistic update
+      emit(FavoritesLoaded(favorites: updatedFavorites));
 
-      add(LoadFavorites());
-    } catch (e) {
-      emit(FavoritesError(message: e.toString()));
+      try {
+        final userId = auth.currentUser?.uid;
+        if (userId == null) throw Exception("User not logged in");
+
+        await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('favorites')
+            .doc(event.item.id)
+            .set(event.item.toMap());
+      } catch (e) {
+        // Revert to previous state on error
+        emit(FavoritesLoaded(favorites: currentState.favorites));
+        emit(FavoritesError(message: e.toString()));
+      }
     }
   }
 
-  // Remove item from Favorites
   Future<void> _removeFromFavorites(
       RemoveFromFavorites event, Emitter<FavoriteState> emit) async {
-    try {
-      final userId = auth.currentUser?.uid;
-      if (userId == null) throw Exception("User not logged in");
+    if (state is FavoritesLoaded) {
+      final currentState = state as FavoritesLoaded;
+      final updatedFavorites = currentState.favorites
+          .where((item) => item.id != event.itemId)
+          .toList();
 
-      await firestore
-          .collection('users')
-          .doc(userId)
-          .collection('favorites')
-          .doc(event.itemId)
-          .delete();
+      // Emit optimistic update
+      emit(FavoritesLoaded(favorites: updatedFavorites));
 
-      add(LoadFavorites());
-    } catch (e) {
-      emit(FavoritesError(message: e.toString()));
+      try {
+        final userId = auth.currentUser?.uid;
+        if (userId == null) throw Exception("User not logged in");
+
+        await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('favorites')
+            .doc(event.itemId)
+            .delete();
+      } catch (e) {
+        // Revert to previous state on error
+        emit(FavoritesLoaded(favorites: currentState.favorites));
+        emit(FavoritesError(message: e.toString()));
+      }
     }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:hot_diamond_users/src/enum/price_sort.dart';
 
 abstract class ItemEvent extends Equatable{
   const ItemEvent();
@@ -19,6 +20,14 @@ class FetchItemsByCategoryEvent extends ItemEvent {
 
 class FetchAllItemsEvent extends ItemEvent {}
 
+class SortItemsEvent extends ItemEvent{
+  final PriceSort sortType;
+
+  const SortItemsEvent(this.sortType);
+
+  @override
+  List<Object> get props => [sortType];
+}
 
 class SearchItemsEvent extends ItemEvent{
   final String query;

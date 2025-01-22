@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/location/location_event.dart';
 import 'package:hot_diamond_users/src/screens/home/current_location_screen/current_location_screen.dart';
-import 'package:hot_diamond_users/src/screens/home/order_type/widget/widget.dart';
+import 'package:hot_diamond_users/src/screens/home/order_type/widget/order_type_button.dart';
 import 'package:hot_diamond_users/src/services/user_repository.dart';
 import 'package:hot_diamond_users/utils/style/custom_text_styles.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';

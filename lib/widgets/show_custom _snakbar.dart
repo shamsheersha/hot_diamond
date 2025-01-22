@@ -19,13 +19,13 @@ showCustomSnackbar(BuildContext context, String message,
         ))
       ],
     ),
-    backgroundColor: isError? Colors.black : Colors.black,
+    backgroundColor: isError? Colors.black12: Colors.black87,
     duration: const Duration(seconds: 2),
     behavior: SnackBarBehavior.floating,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10)
     ),
-    margin: const EdgeInsets.symmetric(horizontal: 16,vertical: 8),
+    margin: const EdgeInsets.symmetric(horizontal: 60,vertical: 60),
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }

@@ -39,6 +39,7 @@ class ItemGridView extends StatelessWidget {
         onTap: () {
           WoltModalSheet.show(
               context: context,
+              useSafeArea: false,
               pageListBuilder: (context) => [
                     WoltModalSheetPage(
                       backgroundColor: Colors.white,
@@ -114,15 +115,42 @@ class ItemGridView extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4), // Reduced spacing
-                          Text(
-                            '₹${item.price.toStringAsFixed(2)}',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                              color: Colors.black87,
+                          Text(item.description,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis),
+                          if (item.hasValidOffer) ...[
+                            Text(
+                              'Rs.${item.calculateDiscountedPrice(item.price).toStringAsFixed(2)}',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: Colors.red,
+                              ),
                             ),
-                          ),
+                            Text(
+                              'Rs.${item.price.toStringAsFixed(2)}',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                                color: Colors.grey,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                          ] else ...[
+                            Text(
+                              'Rs.${item.price.toStringAsFixed(2)}',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

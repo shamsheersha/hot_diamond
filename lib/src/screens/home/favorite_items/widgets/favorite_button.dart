@@ -39,8 +39,10 @@ class FavoriteButtonState extends State<FavoriteButton> {
     try {
       if (isFavorite) {
         favoriteBloc.add(AddToFavorites(item: widget.item));
+        showCustomSnackbar(context, 'Added to favorites');
       } else {
         favoriteBloc.add(RemoveFromFavorites(itemId: widget.item.id));
+        showCustomSnackbar(context, 'Removed from favorites');
       }
     } catch (e) {
       // Rollback the UI state in case of an error

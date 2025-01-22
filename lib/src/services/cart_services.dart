@@ -1,80 +1,135 @@
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:hot_diamond_users/src/model/item/item_model.dart';
+import 'dart:developer';
 
-// class CartServices {
-//   final _firestore = FirebaseFirestore.instance;
-//   final _auth = FirebaseAuth.instance;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hot_diamond_users/src/model/cart/cart_item_model.dart';
+import 'package:hot_diamond_users/src/model/item/item_model.dart';
+import 'package:hot_diamond_users/src/model/variation/variation_model.dart';
+class CartService {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-//   // Get current user id
-//   String get _userId => _auth.currentUser!.uid;
+  String _createCartItemId(String itemId, VariationModel? variation) {
+    if (variation == null) return itemId;
+    return '$itemId-${variation.id}';
+  }
 
-//   // Add item to cart
-//   Future<void> addToCart(ItemModel item, int quantity) async {
-//     try {
-//       // Create a new map that includes the item data and quantity
-//       final cartItemData = item.toMap();
-//       cartItemData['quantity'] = quantity;
+ Future<void> addToCart(ItemModel item, int quantity, {VariationModel? selectedVariation}) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not authenticated');
 
-//       await _firestore
-//           .collection('users')
-//           .doc(_userId)
-//           .collection('cart')
-//           .doc(item.id)
-//           .set(cartItemData);
-//     } catch (error) {
-//       print('Error adding item to cart: $error');
-//       rethrow;
-//     }
-//   }
+    final cartRef = _firestore.collection('users').doc(user.uid).collection('cart');
+    final cartItemId = _createCartItemId(item.id, selectedVariation);
 
-//   // Fetch cart items
-//   Future<List<ItemModel>> fetchCartItems() async {
-//     try {
-//       final querySnapshot = await _firestore
-//           .collection('users')
-//           .doc(_userId)
-//           .collection('cart')
-//           .get();
+    // Check if item with this variation already exists
+    final existingItem = await cartRef.doc(cartItemId).get();
+    
+    if (existingItem.exists) {
+      // If item exists, update quantity
+      final currentQuantity = existingItem.data()?['quantity'] ?? 0;
+      await cartRef.doc(cartItemId).update({
+        'quantity': currentQuantity + quantity,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } else {
+      // If item doesn't exist, create new cart item
+      final cartData = {
+        'item': item.toMap(),
+        'quantity': quantity,
+        'selectedVariation': selectedVariation?.toMap(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+      await cartRef.doc(cartItemId).set(cartData);
+    }
+  }
+  Future<void> updateCartItemQuantity(
+    String itemId,
+    int quantity, {
+    VariationModel? variation,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not authenticated');
 
-//       return querySnapshot.docs.map((doc) {
-//         // Convert the document to an ItemModel and include the quantity
-//         final data = doc.data();
-//         final item = ItemModel.fromFireStore(doc);
-//         return item;
-//       }).toList();
-//     } catch (e) {
-//       print('Error fetching cart items: $e');
-//       return [];
-//     }
-//   }
+    final cartItemId = _createCartItemId(itemId, variation);
+    
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('cart')
+        .doc(cartItemId)
+        .update({
+          'quantity': quantity,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+  }
+    Future<CartItem?> getCartItemByVariation(String itemId, VariationModel? variation) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not authenticated');
 
-//   // Remove item from cart
-//   Future<void> removeFromCart(String itemId) async {
-//     await _firestore
-//         .collection('users')
-//         .doc(_userId)
-//         .collection('cart')
-//         .doc(itemId)
-//         .delete();
-//   }
+    final cartItemId = _createCartItemId(itemId, variation);
+    final doc = await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('cart')
+        .doc(cartItemId)
+        .get();
 
-//   // Clear entire cart
-//   Future<void> clearCart() async {
-//     try {
-//       final cartCollection =
-//           _firestore.collection('users').doc(_userId).collection('cart');
+    if (doc.exists && doc.data() != null) {
+      return CartItem.fromFirestore(doc);
+    }
+    return null;
+  }
+  Future<void> removeFromCart(String itemId, {VariationModel? variation}) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not authenticated');
 
-//       // Get all documents in the cart
-//       final snapShot = await cartCollection.get();
+    final cartItemId = _createCartItemId(itemId, variation);
 
-//       // Delete each document
-//       for (DocumentSnapshot doc in snapShot.docs) {
-//         await doc.reference.delete();
-//       }
-//     } catch (error) {
-//       print('Error clearing cart: $error');
-//       rethrow;
-//     }
-//   }
-// }
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('cart')
+        .doc(cartItemId)
+        .delete();
+  }
+
+  Future<void> clearCart() async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not authenticated');
+
+    final cartRef = _firestore.collection('users').doc(user.uid).collection('cart');
+    final cartItems = await cartRef.get();
+
+    for (var doc in cartItems.docs) {
+      await doc.reference.delete();
+    }
+  }
+
+  // Changed from Stream to Future
+  Future<List<CartItem>> getCart() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      log('No authenticated user found in CartService.getCart()');
+      throw Exception('User not authenticated');
+    }
+
+    log('Fetching cart for user: ${user.uid}');
+    
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('cart')
+          .get();
+
+      log('Received cart snapshot with ${snapshot.docs.length} items');
+      
+      return snapshot.docs
+          .map((doc) => CartItem.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      log('Error fetching cart items', error: e);
+      rethrow;
+    }
+  }
+}

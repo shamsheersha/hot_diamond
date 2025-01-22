@@ -3,10 +3,11 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/cart/cart_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/cart/cart_event.dart';
+import 'package:hot_diamond_users/src/enum/discount_type.dart';
 import 'package:hot_diamond_users/src/model/item/item_model.dart';
+import 'package:hot_diamond_users/src/model/variation/variation_model.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hot_diamond_users/src/screens/home/favorite_items/widgets/favorite_button.dart';
-import 'package:hot_diamond_users/widgets/custom_button.dart';
 import 'package:hot_diamond_users/widgets/show_custom%20_snakbar.dart';
 
 class ItemDetailsSheet extends StatefulWidget {
@@ -21,7 +22,78 @@ class ItemDetailsSheet extends StatefulWidget {
 class ItemDetailsSheetState extends State<ItemDetailsSheet> {
   int _current = 0;
   int _quantity = 1;
+  VariationModel? _selectedVariation;
   final CarouselSliderController _controller = CarouselSliderController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.itemModel.variations.isNotEmpty) {
+      _selectedVariation = widget.itemModel.variations.first;
+    }
+  }
+
+  double get currentPrice {
+    double basePrice = _selectedVariation?.price ?? widget.itemModel.price;
+    return widget.itemModel.hasValidOffer
+        ? widget.itemModel.calculateDiscountedPrice(basePrice)
+        : basePrice;
+  }
+
+  Widget _buildVariationSelector() {
+    if (widget.itemModel.variations.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 10),
+        Text(
+          'Select Variation',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: widget.itemModel.variations.map((variation) {
+            final isSelected = _selectedVariation?.id == variation.id;
+            return InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedVariation = variation;
+                });
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.red[700] : Colors.grey[200],
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? Colors.red[700]! : Colors.grey[300]!,
+                  ),
+                ),
+                child: Text(
+                  variation.displayName,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +107,10 @@ class ItemDetailsSheetState extends State<ItemDetailsSheet> {
                 children: [
                   CarouselSlider.builder(
                     itemCount: widget.itemModel.imageUrls.length,
-                    itemBuilder: (BuildContext context, int index, int realIndex) {
+                    itemBuilder:
+                        (BuildContext context, int index, int realIndex) {
                       return Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(16.0),
                         child: Container(
                           height: 200,
                           width: double.infinity,
@@ -49,10 +122,11 @@ class ItemDetailsSheetState extends State<ItemDetailsSheet> {
                             borderRadius: BorderRadius.circular(12),
                             child: Image.network(
                               widget.itemModel.imageUrls[index],
-                              fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
+                              fit: BoxFit.fill,
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
                                 if (loadingProgress == null) return child;
-                                return Center(
+                                return const Center(
                                   child: CircularProgressIndicator(),
                                 );
                               },
@@ -85,7 +159,10 @@ class ItemDetailsSheetState extends State<ItemDetailsSheet> {
                     right: 16,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: widget.itemModel.imageUrls.asMap().entries.map((entry) {
+                      children: widget.itemModel.imageUrls
+                          .asMap()
+                          .entries
+                          .map((entry) {
                         return GestureDetector(
                           onTap: () => _controller.animateToPage(entry.key),
                           child: Container(
@@ -103,6 +180,7 @@ class ItemDetailsSheetState extends State<ItemDetailsSheet> {
                       }).toList(),
                     ),
                   ),
+                  _buildOfferBadge(),
                 ],
               ),
               Padding(
@@ -110,34 +188,53 @@ class ItemDetailsSheetState extends State<ItemDetailsSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          widget.itemModel.name,
-                          style: GoogleFonts.poppins(
-                              fontSize: 24, fontWeight: FontWeight.bold),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  widget.itemModel.name,
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                FavoriteButton(item: widget.itemModel),
+                              ],
+                            ),
+                            _buildPriceSection(),
+                            const SizedBox(height: 8),
+                            Text(
+                              widget.itemModel.description,
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            _buildVariationSelector(),
+                            const SizedBox(
+                              height: 5,
+                            ),
+                          ],
                         ),
-                        FavoriteButton(item: widget.itemModel),
-                      ],
-                    ),
-                    Text(
-                      '₹${widget.itemModel.price.toStringAsFixed(2)}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.itemModel.description,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                    SizedBox(
+                      height: 10,
                     ),
-                    const Divider(),
+                    if (widget.itemModel.hasValidOffer) _buildOfferDetails(),
+                    const SizedBox(
+                      height: 80,
+                    )
                   ],
                 ),
               ),
@@ -149,68 +246,43 @@ class ItemDetailsSheetState extends State<ItemDetailsSheet> {
           right: 0,
           bottom: 0,
           child: Container(
-            height: 100,
-            width: double.infinity,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(16), topRight: Radius.circular(16)),
               boxShadow: [
                 BoxShadow(
+                  color: const Color.fromARGB(255, 77, 67, 67).withOpacity(0.3),
+                  spreadRadius: 1,
                   blurRadius: 5,
-                  spreadRadius: 2,
-                  offset: Offset(0, 1),
-                  color: Colors.grey,
-                )
+                  offset: const Offset(0, -3),
+                ),
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 14,
-                    backgroundColor:_quantity > 1? Colors.red[700] : Colors.grey[300],
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      icon:  Icon(Icons.remove, color:_quantity > 1? Colors.white : Colors.black),
-                      onPressed: () {
-                        setState(() {
-                          if (_quantity > 1) _quantity--;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _quantity.toString(),
-                    style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(width: 8),
-                  CircleAvatar(
-                    radius: 14,
-                    backgroundColor: Colors.red[700],
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      icon: const Icon(Icons.add, color: Colors.white),
-                      onPressed: () {
-                        setState(() {
-                          _quantity++;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 20),
+                  _buildQuantityControls(),
+                  const SizedBox(width: 16),
                   Expanded(
-                    child: CustomButton(
-                      text: 'Add to Cart',
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.shopping_cart),
+                      label: const Text('Add to Cart'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red[700],
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                       onPressed: () {
-                        // Add item to cart
                         context.read<CartBloc>().add(
-                              AddItemToCart(widget.itemModel, _quantity),
+                              AddItemToCart(widget.itemModel, _quantity,
+                                  selectedVariation: _selectedVariation),
                             );
-
-                        // Show snackbar
                         showCustomSnackbar(
                           context,
                           '${widget.itemModel.name} added to cart!',
@@ -222,8 +294,161 @@ class ItemDetailsSheetState extends State<ItemDetailsSheet> {
               ),
             ),
           ),
-        ),
+        )
       ],
+    );
+  }
+
+  Widget _buildOfferDetails() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.local_offer_outlined, color: Colors.red[700]),
+              const SizedBox(width: 8),
+              Text(
+                'Special Offer',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red[700],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            widget.itemModel.offer!.description,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: Colors.red[900],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Valid till ${widget.itemModel.offer!.endDate.toString().split(' ')[0]}',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: Colors.red[900],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriceSection() {
+    double originalPrice = _selectedVariation?.price ?? widget.itemModel.price;
+    return Row(
+      children: [
+        Text(
+          '₹${currentPrice.toStringAsFixed(2)}',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[800],
+          ),
+        ),
+        if (widget.itemModel.hasValidOffer) ...[
+          const SizedBox(width: 8),
+          Text(
+            '₹${originalPrice.toStringAsFixed(2)}',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              decoration: TextDecoration.lineThrough,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildOfferBadge() {
+    if (!widget.itemModel.hasValidOffer) return const SizedBox.shrink();
+
+    return Positioned(
+      top: 20,
+      right: 20,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.red[700],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          widget.itemModel.offer!.discountType == DiscountType.percentage
+              ? '${widget.itemModel.offer!.discountValue.toStringAsFixed(0)}% OFF'
+              : '₹${widget.itemModel.offer!.discountValue} OFF',
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuantityControls() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            constraints: const BoxConstraints(minWidth: 32),
+            icon: Icon(
+              Icons.remove,
+              color: _quantity > 1 ? Colors.red[700] : Colors.grey,
+              size: 20,
+            ),
+            onPressed: _quantity > 1
+                ? () {
+                    setState(() {
+                      _quantity--;
+                    });
+                  }
+                : null,
+          ),
+          Container(
+            constraints: const BoxConstraints(minWidth: 36),
+            child: Text(
+              _quantity.toString(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          IconButton(
+            constraints: const BoxConstraints(minWidth: 32),
+            icon: Icon(
+              Icons.add,
+              color: Colors.red[700],
+              size: 20,
+            ),
+            onPressed: () {
+              setState(() {
+                _quantity++;
+              });
+            },
+          ),
+        ],
+      ),
     );
   }
 }

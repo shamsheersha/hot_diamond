@@ -6,7 +6,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/address/address_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/address/address_event.dart';
 import 'package:hot_diamond_users/src/controllers/cart/cart_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/cart/cart_event.dart';
 import 'package:hot_diamond_users/src/controllers/category/category_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/favorite/favorite_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/favorite/favorite_event.dart';
@@ -17,7 +20,10 @@ import 'package:hot_diamond_users/src/screens/home/splash/splash.dart';
 import 'package:hot_diamond_users/src/controllers/auth/authentication_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/splash/splash_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/user_details/user_details_bloc.dart';
+import 'package:hot_diamond_users/src/services/add_addresses.dart';
 import 'package:hot_diamond_users/src/services/auth_repository.dart';
+import 'package:hot_diamond_users/src/services/cart_services.dart';
+import 'package:hot_diamond_users/src/services/item_service.dart';
 import 'package:location/location.dart' as loc;
 
 void main() async {
@@ -53,41 +59,46 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = AuthRepository();
+    final itemService = ItemService();
+    final addressService = AddressService(); // Create a single instance
     loc.Location locationService = loc.Location();
+    
     return MultiBlocProvider(
-        providers: [
-          BlocProvider(create: (context) => SplashBloc()..add(StartSplash())),
-          BlocProvider(
-              create: (context) => AuthenticationBloc(authRepository: auth)),
-          BlocProvider(
-              create: (context) =>
-                  UserDetailsBloc(authRepository: AuthRepository())
-                    ..add(FetchUserDetails())),
-          BlocProvider(
-            create: (context) =>
-                LocationBloc(locationController: locationService)..add(FetchLocationEvent()),
-          ),
-          BlocProvider(
-            create: (context) => CategoryBloc(),
-          ),
-          BlocProvider(
-            create: (context) => ItemBloc(),
-          ),
-          BlocProvider(
-            create: (context) => FavoriteBloc(
-                auth: FirebaseAuth.instance,
-                firestore: FirebaseFirestore.instance)
-              ..add(LoadFavorites()),
-          ),
-          BlocProvider(create: (context) => CartBloc())
-        ],
-        child: MaterialApp(
-            title: 'Hot Diamond Users',
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-                primaryColor: Colors.red,
-                // appBarTheme: const AppBarTheme(color: Colors.red),
-                scaffoldBackgroundColor: Colors.grey[100]),
-            home: const Splash()));
+      providers: [
+        BlocProvider(create: (context) => SplashBloc()..add(StartSplash())),
+        BlocProvider(create: (context) => AuthenticationBloc(authRepository: auth)),
+        BlocProvider(
+          create: (context) => UserDetailsBloc(authRepository: AuthRepository())
+            ..add(FetchUserDetails())
+        ),
+        BlocProvider(
+          create: (context) => LocationBloc(locationController: locationService)
+            ..add(FetchLocationEvent())
+        ),
+        BlocProvider(create: (context) => CategoryBloc()),
+        BlocProvider(create: (context) => ItemBloc(itemService)),
+        BlocProvider(
+          create: (context) => FavoriteBloc(
+            auth: FirebaseAuth.instance,
+            firestore: FirebaseFirestore.instance
+          )..add(LoadFavorites())
+        ),
+        BlocProvider(
+          create: (context) => CartBloc(cartService: CartService())..add(LoadCart())
+        ),
+        BlocProvider(
+          create: (context) => AddressBloc(addressService)..add(LoadAddresses())
+        ),
+      ],
+      child: MaterialApp(
+        title: 'Hot Diamond Users',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primaryColor: Colors.red,
+          scaffoldBackgroundColor: Colors.grey[100]
+        ),
+        home: const Splash()
+      )
+    );
   }
 }

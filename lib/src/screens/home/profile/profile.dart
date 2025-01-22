@@ -5,6 +5,8 @@ import 'package:hot_diamond_users/src/controllers/auth/authentication_bloc.dart'
 import 'package:hot_diamond_users/src/controllers/auth/authentication_event.dart';
 import 'package:hot_diamond_users/src/controllers/auth/authentication_state.dart';
 import 'package:hot_diamond_users/src/controllers/user_details/user_details_bloc.dart';
+import 'package:hot_diamond_users/src/screens/home/address_screen/show_address_screen/show_address_screen.dart';
+import 'package:hot_diamond_users/src/screens/home/cart_page/cart_screen.dart';
 import 'package:hot_diamond_users/src/screens/home/favorite_items/favorite_items.dart';
 import 'package:hot_diamond_users/src/screens/home/home_screen/widget/user_avatar_widget.dart';
 import 'package:hot_diamond_users/src/screens/home/profile/widget/menu_button_widget.dart';
@@ -59,7 +61,9 @@ class Profile extends StatelessWidget {
         MenuButton(
           icon: Icons.location_on_outlined,
           label: 'My Addresses',
-          onPressed: () {},
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context)=>ShowAddressScreen()));
+          },
         ),
         MenuButton(
           icon: Icons.list_alt_rounded,
@@ -71,6 +75,13 @@ class Profile extends StatelessWidget {
           label: 'My Favorites',
           onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(builder: (context)=>FavoritesPage()));
+          },
+        ),
+        MenuButton(
+          icon: Icons.shopping_cart_outlined,
+          label: 'My Cart',
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context)=>CartScreen()));
           },
         ),
         MenuButton(

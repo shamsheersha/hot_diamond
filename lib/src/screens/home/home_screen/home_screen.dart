@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     context.read<ItemBloc>().add(FetchAllItemsEvent());
     context.read<LocationBloc>().add(FetchLocationEvent());
-    context.read<CategoryBloc>().add(FetchCategoriesEvent());
+    context.read<CategoryBloc>().add(const FetchCategoriesEvent());
     context.read<FavoriteBloc>().add(LoadFavorites());
   }
 
@@ -40,7 +40,9 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _searchQuery = query; // Update the search query
     });
-    context.read<ItemBloc>().add(SearchItemsEvent(query)); // Trigger search event
+    context
+        .read<ItemBloc>()
+        .add(SearchItemsEvent(query)); // Trigger search event
   }
 
   @override
@@ -72,13 +74,34 @@ class _HomeScreenState extends State<HomeScreen> {
         title: BlocBuilder<LocationBloc, LocationState>(
           builder: (context, state) {
             if (state is LocationLoaded) {
-              return Text("${state.city}, ${state.area}", style: CustomTextStyles.locationName);
+              return Row(
+                children: [
+                  const Icon(Icons.location_on),
+                  Text("${state.city}, ${state.area}",
+                      style: CustomTextStyles.locationName),
+                ],
+              );
             } else if (state is LocationLoading) {
-              return const Text("Fetching location...");
+              return const Row(
+                children: [
+                  Icon(Icons.location_on),
+                  Text("Fetching location..."),
+                ],
+              );
             } else if (state is LocationError) {
-              return const Text("Location unavailable");
+              return const Row(
+                children: [
+                  Icon(Icons.location_on),
+                  Text("Location unavailable"),
+                ],
+              );
             } else {
-              return const Text("Location");
+              return const Row(
+                children: [
+                  Icon(Icons.location_on),
+                  Text("Location"),
+                ],
+              );
             }
           },
         ),

@@ -9,13 +9,13 @@ import 'package:hot_diamond_users/src/controllers/category/category_state.dart';
 import 'package:hot_diamond_users/src/controllers/item/item_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/item/item_event.dart';
 import 'package:hot_diamond_users/src/controllers/item/item_state.dart';
+import 'package:hot_diamond_users/src/model/cart/cart_item_model.dart';
 import 'package:hot_diamond_users/src/model/category/category_model.dart';
 import 'package:hot_diamond_users/src/model/item/item_model.dart';
 import 'package:hot_diamond_users/src/screens/home/cart_page/cart_screen.dart';
 import 'package:hot_diamond_users/src/screens/home/item_grid_view/item_grid_view.dart';
 import 'package:hot_diamond_users/src/screens/home/showcategory/widgets/category_design.dart';
 import 'package:hot_diamond_users/utils/colors/custom_colors.dart';
-import 'package:hot_diamond_users/widgets/custom_button.dart';
 
 class ShowCategory extends StatelessWidget {
   final String searchQuery;
@@ -170,9 +170,8 @@ class ShowCategory extends StatelessWidget {
                   ],
                 ),
 
-                // Cart Button - Always positioned at the bottom
+                // Cart Button and Total Amount - Always positioned at the bottom
                 BlocBuilder<CartBloc, CartState>(
-                  // Assuming CartBloc is handling cart items
                   builder: (context, cartState) {
                     if (cartState is CartUpdated &&
                         cartState.items.isNotEmpty) {
@@ -181,7 +180,6 @@ class ShowCategory extends StatelessWidget {
                         right: 0,
                         bottom: 0,
                         child: Container(
-                          height: 110,
                           width: double.infinity,
                           decoration: const BoxDecoration(
                             color: Colors.white,
@@ -200,84 +198,100 @@ class ShowCategory extends StatelessWidget {
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(12),
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) => CartScreen()));
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 30),
-                                child: Container(
-                                  height: 80,
-                                  width: double.infinity,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(16)),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        blurRadius: 5,
-                                        spreadRadius: 2,
-                                        offset: Offset(0, 1),
-                                        color: Colors.grey,
-                                      )
-                                    ],
-                                  ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Total Amount:',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Rs. ${_calculateTotalAmount(cartState.items).toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const CartScreen()));
+                                  },
                                   child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Row(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 14,
-                                          backgroundColor: Colors.white,
-                                          child: Text(
-                                            cartState.items.length.toString(),
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.w500,color: Colors.black),
-                                          ),
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: Container(
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        color: Colors.red[700],
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(16)),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            blurRadius: 5,
+                                            spreadRadius: 2,
+                                            offset: Offset(0, 1),
+                                            color: Colors.grey,
+                                          )
+                                        ],
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 14,
+                                              backgroundColor: Colors.white,
+                                              child: Text(
+                                                cartState.items.length
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Colors.black),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 5),
+                                            const Text(
+                                              'View Cart',
+                                              style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w600),
+                                            ),
+                                            const Spacer(),
+                                            Text(
+                                              'Rs. ${_calculateTotalAmount(cartState.items).toStringAsFixed(2)}',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 16,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        SizedBox(width: 5,),
-                                        Text('View Cart',style: TextStyle(fontSize: 16,color: Colors.white,fontWeight: FontWeight.w600),),
-                                        const Spacer(),
-                                        Text(
-                                          'Rs. ${cartState.items.fold(0.0, (total, cartItem) => total + (cartItem.item.price * cartItem.quantity)).toStringAsFixed(2)}',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                         ),
                       );
                     }
-
-                    return const SizedBox
-                        .shrink(); // If no items in cart, don't show the container
+                    return const SizedBox.shrink();
                   },
-                ),
-
-                // Cart Button - Always positioned at the bottom
-                // Positioned(
-                //   left: 0,
-                //   right: 0,
-                //   bottom: 0,
-                //   child: Padding(
-                //     padding: const EdgeInsets.all(8.0),
-                //     child: CustomButton(
-                //       text: 'View Cart',
-                //       onPressed: () {
-                //         Navigator.of(context).push(MaterialPageRoute(
-                //             builder: (context) => CartScreen()));
-                //       },
-                //     ),
-                //   ),
-                // ),
+                )
               ],
             ),
           );
@@ -315,5 +329,24 @@ class ShowCategory extends StatelessWidget {
     }
 
     return groupedItems;
+  }
+
+   double _calculateTotalAmount(List<CartItem> items) {
+    return items.fold(
+      0.0,
+      (total, item) {
+        if (item.selectedVariation != null) {
+          // If item has variation, calculate based on variation price
+          return total + (item.item.hasValidOffer
+              ? item.item.calculateDiscountedPrice(item.selectedVariation!.price) * item.quantity
+              : item.selectedVariation!.price * item.quantity);
+        } else {
+          // If no variation, calculate based on item price
+          return total + (item.item.hasValidOffer
+              ? item.item.calculateDiscountedPrice(item.item.price) * item.quantity
+              : item.item.price * item.quantity);
+        }
+      },
+    );
   }
 }
