@@ -12,20 +12,22 @@ class ItemGridView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true, // Ensure it only takes the space it needs
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.75,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
+    return SingleChildScrollView(
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.75,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return _buildItemCard(context, item);
+        },
       ),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return _buildItemCard(context, item);
-      },
     );
   }
 
@@ -38,18 +40,20 @@ class ItemGridView extends StatelessWidget {
       child: InkWell(
         onTap: () {
           WoltModalSheet.show(
-              context: context,
-              useSafeArea: false,
-              pageListBuilder: (context) => [
-                    WoltModalSheetPage(
-                      backgroundColor: Colors.white,
-                      sabGradientColor: Colors.transparent,
-                      surfaceTintColor: Colors.transparent,
-                      child: SizedBox(
-                          height: 600,
-                          child: ItemDetailsSheet(itemModel: item)),
-                    )
-                  ]);
+            context: context,
+            useSafeArea: false,
+            pageListBuilder: (context) => [
+              WoltModalSheetPage(
+                backgroundColor: Colors.white,
+                sabGradientColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                child: SizedBox(
+                  height: 680,
+                  child: ItemDetailsSheet(itemModel: item)
+                ),
+              )
+            ]
+          );
         },
         child: Stack(
           children: [
@@ -70,65 +74,75 @@ class ItemGridView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    flex: 2, // Increase image area
+                    flex: 3,
                     child: ClipRRect(
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(12)),
-                      child: Image.network(
-                        item.imageUrls.isNotEmpty ? item.imageUrls[0] : '',
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) {
-                            return child;
-                          }
-                          return Image.asset(
-                            'assets/—Pngtree—gray network placeholder_6398266.png',
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            'assets/—Pngtree—gray network placeholder_6398266.png',
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          );
-                        },
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // Base placeholder - always visible initially
+                          Container(
+                            color: Colors.grey[200],
+                            child: Center(
+                              child: Image.asset(
+                                'assets/—Pngtree—gray network placeholder_6398266.png',
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          // Actual image with fade-in animation
+                          if (item.imageUrls.isNotEmpty)
+                            FadeInImage.assetNetwork(
+                              placeholder: 'assets/—Pngtree—gray network placeholder_6398266.png',
+                              image: item.imageUrls[0],
+                              fit: BoxFit.cover,
+                              fadeInDuration: const Duration(milliseconds: 300),
+                              imageErrorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Image.asset(
+                                    'assets/—Pngtree—gray network placeholder_6398266.png',
+                                    fit: BoxFit.cover,
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
                       ),
                     ),
                   ),
-                  Expanded(
-                    flex: 1, // Reduce text area
+                  SizedBox(
+                    height: 85,
                     child: Padding(
-                      padding: const EdgeInsets.all(8), // Reduced padding
+                      padding: const EdgeInsets.all(8),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             item.name,
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
-                              fontSize: 14, // Slightly smaller font
+                              fontSize: 12,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          Text(item.description,
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w400,
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis),
+                          Text(
+                            item.description,
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 11,
+                              color: Colors.grey,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           if (item.hasValidOffer) ...[
                             Text(
                               'Rs.${item.calculateDiscountedPrice(item.price).toStringAsFixed(2)}',
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                                fontSize: 13,
                                 color: Colors.red,
                               ),
                             ),
@@ -136,7 +150,7 @@ class ItemGridView extends StatelessWidget {
                               'Rs.${item.price.toStringAsFixed(2)}',
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 12,
+                                fontSize: 11,
                                 color: Colors.grey,
                                 decoration: TextDecoration.lineThrough,
                               ),
@@ -146,7 +160,7 @@ class ItemGridView extends StatelessWidget {
                               'Rs.${item.price.toStringAsFixed(2)}',
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                                fontSize: 13,
                                 color: Colors.black87,
                               ),
                             ),
@@ -158,7 +172,11 @@ class ItemGridView extends StatelessWidget {
                 ],
               ),
             ),
-            Positioned(left: 127, bottom: 2, child: FavoriteButton(item: item))
+            Positioned(
+              right: 0,
+              bottom: 2,
+              child: FavoriteButton(item: item)
+            )
           ],
         ),
       ),

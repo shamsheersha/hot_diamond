@@ -22,28 +22,29 @@ class OrderModel {
     required this.createdAt,
     required this.status,
     required this.paymentMethod,
-
   });
 
   factory OrderModel.fromMap(Map<String, dynamic> map, String id) {
     return OrderModel(
       id: id,
       userId: map['userId'] ?? '',
-      items: (map['items'] as List<dynamic>)
-          .map((item) => CartItem.fromMap(item as Map<String, dynamic>))
-          .toList(),
+      items: map['items'] != null
+          ? (map['items'] as List<dynamic>)
+              .map((item) => CartItem.fromMap(item as Map<String, dynamic>))
+              .toList()
+          : [],
       deliveryAddress: Address.fromMap(
-          map['deliveryAddress'] as Map<String, dynamic>, map['addressId'] ?? ''),
+          map['deliveryAddress'] as Map<String, dynamic>,
+          map['addressId'] ?? ''),
       totalAmount: (map['totalAmount'] ?? 0.0).toDouble(),
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       status: OrderStatus.values.firstWhere(
-        (e) => e.toString() == 'OrderStatus.${map['status'] ?? 'pending'}',
-      ),
-      
+          (e) => e.toString().split('.').last == (map['status'] ?? 'pending'),
+          orElse: () => OrderStatus.pending),
       paymentMethod: PaymentMethod.values.firstWhere(
-        (e) => e.toString() == 'PaymentMethod.${map['paymentMethod'] ?? 'cod'}',
-      ),
-
+          (e) =>
+              e.toString().split('.').last == (map['paymentMethod'] ?? 'cod'),
+          orElse: () => PaymentMethod.cod),
     );
   }
 
@@ -56,7 +57,6 @@ class OrderModel {
       'createdAt': Timestamp.fromDate(createdAt),
       'status': status.toString().split('.').last,
       'paymentMethod': paymentMethod.toString().split('.').last,
-
     };
   }
 
@@ -81,7 +81,6 @@ class OrderModel {
       createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
       paymentMethod: paymentMethod ?? this.paymentMethod,
-
     );
   }
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/user_details/user_details_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/user_details/user_details_event.dart';
 import 'package:hot_diamond_users/src/screens/home/profile/profile.dart';
 import 'package:hot_diamond_users/src/services/auth_repository.dart';
+import 'package:hot_diamond_users/src/services/cloudinary_serivce.dart';
 
 class SideProfileView extends StatelessWidget {
   const SideProfileView({super.key});
@@ -30,8 +32,8 @@ class SideProfileView extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: BlocProvider(
-                  create: (context) => UserDetailsBloc(authRepository: AuthRepository())..add(FetchUserDetails()),
-                  child: const Profile(),
+                  create: (context) => UserDetailsBloc(imageService: ImageCloudinaryService(), authRepository: AuthRepository())..add(FetchUserDetails()),
+                  child: const Center(child: Profile()),
                 ),
               ),
             ),

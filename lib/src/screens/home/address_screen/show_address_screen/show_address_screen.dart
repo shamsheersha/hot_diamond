@@ -6,7 +6,6 @@ import 'package:hot_diamond_users/src/controllers/address/address_state.dart';
 import 'package:hot_diamond_users/src/enum/address_type.dart';
 import 'package:hot_diamond_users/src/model/address/address_model.dart';
 import 'package:hot_diamond_users/src/screens/home/address_screen/add_screen/add_address_screen.dart';
-import 'package:lottie/lottie.dart';
 
 class ShowAddressScreen extends StatelessWidget {
   const ShowAddressScreen({super.key});
@@ -35,7 +34,7 @@ class ShowAddressScreen extends StatelessWidget {
         builder: (context, state) {
           if (state is AddressLoading) {
             return const Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(color: Colors.black,),
             );
           }
 

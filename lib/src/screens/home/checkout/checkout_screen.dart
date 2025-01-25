@@ -3,8 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/cart/cart_event.dart';
 import 'package:hot_diamond_users/src/controllers/order/order_bloc.dart';
 import 'package:hot_diamond_users/src/enum/checkout_enums.dart';
-import 'package:hot_diamond_users/src/screens/home/checkout/my_orders_screen.dart';
-import 'package:hot_diamond_users/src/screens/home/home_screen/home_screen.dart';
+import 'package:hot_diamond_users/src/screens/home/my_order_screen/my_orders_screen.dart';
 import 'package:hot_diamond_users/widgets/show_custom%20_snakbar.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:hot_diamond_users/src/controllers/address/address_event.dart';
@@ -67,20 +66,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Payment Failed: ${response.message}'),
-        backgroundColor: Colors.red,
-      ),
-    );
+    showCustomSnackbar(context, 'Payment Failed: ${response.message}');
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('External Wallet Selected: ${response.walletName}'),
-      ),
-    );
+    showCustomSnackbar(context, 'External Wallet Selected: ${response.walletName}');
   }
 
   void _startRazorpayPayment(double amount) {
@@ -99,12 +89,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _razorpay.open(options);
     } catch (e) {
       debugPrint('Error starting Razorpay: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to start payment. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showCustomSnackbar(context, 'Failed to start payment. Please try again.');
     }
   }
 
@@ -132,7 +117,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           return BlocBuilder<CartBloc, CartState>(
             builder: (context, cartState) {
               if (cartState is! CartUpdated) {
-                return const Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator(color: Colors.black,));
               }
 
               return Theme(
@@ -219,7 +204,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       content: BlocBuilder<AddressBloc, AddressState>(
         builder: (context, state) {
           if (state is AddressLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: Colors.black,));
           }
 
           if (state is AddressesLoaded) {

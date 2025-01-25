@@ -49,12 +49,26 @@ class ItemDetailsSheetState extends State<ItemDetailsSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 10),
-        Text(
-          'Select Variation',
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Select Variation',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (!widget.itemModel.isInStock)
+              Text(
+                'Out of Stock',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red[700],
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -205,7 +219,7 @@ class ItemDetailsSheetState extends State<ItemDetailsSheet> {
                                 Text(
                                   widget.itemModel.name,
                                   style: GoogleFonts.poppins(
-                                      fontSize: 24,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.bold),
                                 ),
                                 FavoriteButton(item: widget.itemModel),
@@ -228,13 +242,10 @@ class ItemDetailsSheetState extends State<ItemDetailsSheet> {
                         ),
                       ),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 10,
                     ),
                     if (widget.itemModel.hasValidOffer) _buildOfferDetails(),
-                    const SizedBox(
-                      height: 80,
-                    )
                   ],
                 ),
               ),
@@ -271,23 +282,27 @@ class ItemDetailsSheetState extends State<ItemDetailsSheet> {
                       icon: const Icon(Icons.shopping_cart),
                       label: const Text('Add to Cart'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red[700],
+                        backgroundColor: widget.itemModel.isInStock
+                            ? Colors.red[700]
+                            : Colors.grey, // Disable button if out of stock
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {
-                        context.read<CartBloc>().add(
-                              AddItemToCart(widget.itemModel, _quantity,
-                                  selectedVariation: _selectedVariation),
-                            );
-                        showCustomSnackbar(
-                          context,
-                          '${widget.itemModel.name} added to cart!',
-                        );
-                      },
+                      onPressed: widget.itemModel.isInStock
+                          ? () {
+                              context.read<CartBloc>().add(
+                                    AddItemToCart(widget.itemModel, _quantity,
+                                        selectedVariation: _selectedVariation),
+                                  );
+                              showCustomSnackbar(
+                                context,
+                                '${widget.itemModel.name} added to cart!',
+                              );
+                            }
+                          : null, // Disable button if out of stock
                     ),
                   ),
                 ],

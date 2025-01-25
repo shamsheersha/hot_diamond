@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hot_diamond_users/src/controllers/address/address_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/address/address_event.dart';
 import 'package:hot_diamond_users/src/controllers/cart/cart_bloc.dart';
@@ -17,6 +18,7 @@ import 'package:hot_diamond_users/src/controllers/item/item_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/location/location_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/location/location_event.dart';
 import 'package:hot_diamond_users/src/controllers/order/order_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/user_details/user_details_event.dart';
 import 'package:hot_diamond_users/src/screens/home/splash/splash.dart';
 import 'package:hot_diamond_users/src/controllers/auth/authentication_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/splash/splash_bloc.dart';
@@ -24,13 +26,15 @@ import 'package:hot_diamond_users/src/controllers/user_details/user_details_bloc
 import 'package:hot_diamond_users/src/services/add_addresses.dart';
 import 'package:hot_diamond_users/src/services/auth_repository.dart';
 import 'package:hot_diamond_users/src/services/cart_services.dart';
+import 'package:hot_diamond_users/src/services/cloudinary_serivce.dart';
 import 'package:hot_diamond_users/src/services/item_service.dart';
+import 'package:hot_diamond_users/src/services/notification_service/nortification_service.dart';
 import 'package:hot_diamond_users/src/services/order_service.dart';
 import 'package:location/location.dart' as loc;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await dotenv.load(fileName: ".env");
   try {
     if (kIsWeb) {
       await Firebase.initializeApp(
@@ -51,7 +55,8 @@ void main() async {
   } catch (e) {
     log('Firebase Initialization error $e');
   }
-
+  NortificationService().requestPermission();
+  NortificationService().init();
   runApp(const MyApp());
 }
 
@@ -72,7 +77,7 @@ class MyApp extends StatelessWidget {
               create: (context) => AuthenticationBloc(authRepository: auth)),
           BlocProvider(
               create: (context) =>
-                  UserDetailsBloc(authRepository: AuthRepository())
+                  UserDetailsBloc(imageService: ImageCloudinaryService(), authRepository: AuthRepository())
                     ..add(FetchUserDetails())),
           BlocProvider(
               create: (context) =>
@@ -92,7 +97,7 @@ class MyApp extends StatelessWidget {
               create: (context) =>
                   AddressBloc(addressService)..add(LoadAddresses())),
           BlocProvider(
-            create: (context) => OrderBloc(OrderServices()),
+            create: (context) => OrderBloc(OrderServices())..add(FetchOrders()),
           )
         ],
         child: MaterialApp(

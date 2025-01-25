@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/user_details/user_details_state.dart';
 import 'package:hot_diamond_users/src/screens/auth/login/login.dart';
 import 'package:hot_diamond_users/src/controllers/auth/authentication_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/auth/authentication_event.dart';
@@ -7,12 +8,13 @@ import 'package:hot_diamond_users/src/controllers/auth/authentication_state.dart
 import 'package:hot_diamond_users/src/controllers/user_details/user_details_bloc.dart';
 import 'package:hot_diamond_users/src/screens/home/address_screen/show_address_screen/show_address_screen.dart';
 import 'package:hot_diamond_users/src/screens/home/cart_page/cart_screen.dart';
-import 'package:hot_diamond_users/src/screens/home/checkout/my_orders_screen.dart';
+import 'package:hot_diamond_users/src/screens/home/my_order_screen/my_orders_screen.dart';
 import 'package:hot_diamond_users/src/screens/home/favorite_items/favorite_items.dart';
 import 'package:hot_diamond_users/src/screens/home/home_screen/widget/user_avatar_widget.dart';
 import 'package:hot_diamond_users/src/screens/home/profile/widget/menu_button_widget.dart';
 import 'package:hot_diamond_users/src/screens/home/profile/widget/user_info_widget.dart';
 import 'package:hot_diamond_users/src/screens/home/user_details_view/user_details_view.dart';
+import 'package:hot_diamond_users/src/screens/term_&_coditions/terms_and%20_conditions.dart';
 import 'package:hot_diamond_users/utils/style/custom_text_styles.dart';
 
 class Profile extends StatelessWidget {
@@ -63,35 +65,49 @@ class Profile extends StatelessWidget {
           icon: Icons.location_on_outlined,
           label: 'My Addresses',
           onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context)=>ShowAddressScreen()));
+            Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const ShowAddressScreen()));
           },
         ),
         MenuButton(
           icon: Icons.list_alt_rounded,
           label: 'My Orders',
           onPressed: () {
-             Navigator.of(context).push(MaterialPageRoute(builder: (context)=>FetchOrdersScreen()));
+             Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const FetchOrdersScreen()));
           },
         ),
         MenuButton(
           icon: Icons.favorite_border,
           label: 'My Favorites',
           onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context)=>FavoritesPage()));
+            Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const FavoritesPage()));
           },
         ),
         MenuButton(
           icon: Icons.shopping_cart_outlined,
           label: 'My Cart',
           onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context)=>CartScreen()));
+            Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const CartScreen()));
           },
         ),
+        // MenuButton(
+        //   icon: Icons.headset_mic_outlined,
+        //   label: 'Support Center',
+        //   onPressed: () {},
+        // ),
         MenuButton(
-          icon: Icons.headset_mic_outlined,
-          label: 'Support Center',
-          onPressed: () {},
+          icon: Icons.security,
+          label: 'Privacy Policy',
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context)=> const TermsConditionsScreen()));
+          },
         ),
+        // MenuButton(
+        //   icon: Icons.description,
+        //   label: 'Terms & Conditions',
+        //   onPressed: () {
+        //     Navigator.of(context).push(MaterialPageRoute(builder: (context)=> const TermsConditionsScreen()));
+        //   },
+        // ),
         BlocListener<AuthenticationBloc, AuthenticationState>(
           listener: (context, state) {
             if (state is LogOutSuccess) {

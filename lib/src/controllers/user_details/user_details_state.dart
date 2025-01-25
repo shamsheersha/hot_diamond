@@ -1,4 +1,5 @@
-part of 'user_details_bloc.dart';
+
+import 'package:equatable/equatable.dart';
 
 abstract class UserDetailsState extends Equatable {
   const UserDetailsState();
@@ -11,19 +12,23 @@ class UserDetailsInitial extends UserDetailsState {}
 
 class UserDetailsLoading extends UserDetailsState {}
 
+
+
 class UserDetailsLoaded extends UserDetailsState {
   final String name;
   final String email;
   final String phoneNumber;
+  final String? profileImage;
 
   const UserDetailsLoaded({
     required this.name,
     required this.email,
     required this.phoneNumber,
+    this.profileImage,
   });
 
   @override
-  List<Object?> get props => [name, email, phoneNumber];
+  List<Object?> get props => [name, email, phoneNumber, profileImage];
 }
 
 

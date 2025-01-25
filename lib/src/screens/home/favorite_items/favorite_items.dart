@@ -36,8 +36,8 @@ class FavoritesPage extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: GridView.builder(
-                shrinkWrap: true, // Ensure it only takes the space it needs
-                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                physics: const BouncingScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   childAspectRatio: 0.75,
@@ -54,7 +54,6 @@ class FavoritesPage extends StatelessWidget {
           } else if (state is FavoritesError) {
             return Center(child: Text(state.message));
           }
-
           return Container();
         },
       ),
@@ -101,38 +100,44 @@ class FavoritesPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    flex: 2, // Increase image area
+                    flex: 2,
                     child: ClipRRect(
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(12)),
-                      child: Image.network(
-                        item.imageUrls.isNotEmpty ? item.imageUrls[0] : '',
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) {
-                            return child;
-                          }
-                          return Image.asset(
-                            'assets/—Pngtree—gray network placeholder_6398266.png', // Asset placeholder
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            'assets/—Pngtree—gray network placeholder_6398266.png', // Asset placeholder
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          );
-                        },
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Container(
+                            color: Colors.grey[200],
+                            child: Center(
+                              child: Image.asset(
+                                'assets/—Pngtree—gray network placeholder_6398266.png',
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          if (item.imageUrls.isNotEmpty)
+                            FadeInImage.assetNetwork(
+                              placeholder: 'assets/—Pngtree—gray network placeholder_6398266.png',
+                              image: item.imageUrls[0],
+                              fit: BoxFit.cover,
+                              fadeInDuration: const Duration(milliseconds: 300),
+                              imageErrorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Image.asset(
+                                    'assets/—Pngtree—gray network placeholder_6398266.png',
+                                    fit: BoxFit.cover,
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
                       ),
                     ),
                   ),
                   Expanded(
-                    flex: 1, // Reduce text area
+                    flex: 1,
                     child: Padding(
-                      padding: const EdgeInsets.all(8), // Reduced padding
+                      padding: const EdgeInsets.all(8),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,12 +146,12 @@ class FavoritesPage extends StatelessWidget {
                             item.name,
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
-                              fontSize: 14, // Slightly smaller font
+                              fontSize: 14,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4), // Reduced spacing
+                          const SizedBox(height: 4),
                           Text(
                             '₹${item.price.toStringAsFixed(2)}',
                             style: GoogleFonts.poppins(

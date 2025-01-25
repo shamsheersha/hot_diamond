@@ -10,8 +10,10 @@ class ItemModel {
   final double price;
   final String categoryId;
   final List<String> imageUrls;
-  final List<VariationModel> variations; // New field for variations
+  final List<VariationModel> variations;
   final OfferModel? offer;
+  final bool isInStock;
+
   ItemModel({
     required this.id,
     required this.name,
@@ -19,25 +21,25 @@ class ItemModel {
     required this.price,
     required this.categoryId,
     required this.imageUrls,
-    this.variations = const [], // Default to empty list if not provided
+    this.variations = const [],
     this.offer,
+    this.isInStock = true,
   });
 
-  //! Convert ItemModel to Map (for Firebase)
   Map<String, dynamic> toMap() {
     return {
-      'id': id, 
+      'id': id,
       'name': name,
       'description': description,
       'price': price,
       'categoryId': categoryId,
       'imageUrls': imageUrls,
-      'variations': variations.map((v) => v.toMap()).toList(), // Convert variations to map
+      'variations': variations.map((v) => v.toMap()).toList(),
       'offer': offer?.toMap(),
+      'isInStock': isInStock,
     };
   }
 
-  //! Create ItemModel from Map (for fetching from Firebase)
   factory ItemModel.fromMap(Map<String, dynamic> map, {String? id}) {
     return ItemModel(
       id: id ?? map['id'] as String,
@@ -52,10 +54,10 @@ class ItemModel {
           .map((v) => VariationModel.fromMap(v as Map<String, dynamic>))
           .toList(),
       offer: map['offer'] != null ? OfferModel.fromMap(map['offer']) : null,
+      isInStock: map['isInStock'] as bool? ?? true,
     );
   }
 
-  //! Create ItemModel from Firestore DocumentSnapshot
   factory ItemModel.fromFireStore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
@@ -71,14 +73,11 @@ class ItemModel {
       variations: (data['variations'] as List<dynamic>? ?? [])
           .map((v) => VariationModel.fromMap(v as Map<String, dynamic>))
           .toList(),
-          offer: data['offer'] != null ? OfferModel.fromMap(data['offer']) : null,
+      offer: data['offer'] != null ? OfferModel.fromMap(data['offer']) : null,
+      isInStock: data['isInStock'] as bool? ?? true,
     );
   }
 
-
-
-  
-  // Add helper methods for offer calculations
   bool get hasValidOffer {
     if (offer == null || !offer!.isEnabled) return false;
     final now = DateTime.now();
@@ -87,7 +86,7 @@ class ItemModel {
 
   double calculateDiscountedPrice(double originalPrice) {
     if (!hasValidOffer) return originalPrice;
-    
+
     if (offer!.discountType == DiscountType.percentage) {
       return originalPrice - (originalPrice * (offer!.discountValue / 100));
     } else {

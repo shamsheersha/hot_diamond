@@ -1,17 +1,39 @@
+import 'dart:developer';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/location/location_event.dart';
 import 'package:hot_diamond_users/src/screens/home/current_location_screen/current_location_screen.dart';
+import 'package:hot_diamond_users/src/screens/home/home_screen/home_screen.dart';
 import 'package:hot_diamond_users/src/screens/home/order_type/widget/order_type_button.dart';
+import 'package:hot_diamond_users/src/services/notification_service/nortification_service.dart';
 import 'package:hot_diamond_users/src/services/user_repository.dart';
 import 'package:hot_diamond_users/utils/style/custom_text_styles.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import '../../../controllers/location/location_bloc.dart';
 
-class OrderType extends StatelessWidget {
+class OrderType extends StatefulWidget {
   const OrderType({super.key});
 
+  @override
+  State<OrderType> createState() => _OrderTypeState();
+}
+
+class _OrderTypeState extends State<OrderType> {
+  @override
+  void initState() {
+    notificationHandler();
+    super.initState();
+  }
+
+  void notificationHandler(){
+    FirebaseMessaging.onMessage.listen((event)async{
+      log(event.notification!.title.toString());
+      NortificationService().showNotification(event);
+    });
+  }
   @override
   Widget build(BuildContext context) {
     final UserRepository userRepository = UserRepository();
@@ -64,7 +86,7 @@ class OrderType extends StatelessWidget {
                           onPressed: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => CurrentLocationScreen(userRepository: userRepository,),
+                                builder: (context) => const HomeScreen(),
                               ),
                             );
                             context
@@ -79,7 +101,7 @@ class OrderType extends StatelessWidget {
                           onPressed: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => CurrentLocationScreen(userRepository: UserRepository(),),
+                                builder: (context) => const HomeScreen()
                               ),
                             );
                             context

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hot_diamond_users/src/screens/auth/login/login.dart';
 import 'package:hot_diamond_users/src/screens/home/order_type/order_type.dart';
+import 'package:hot_diamond_users/src/services/notification_service/nortification_service.dart';
 
 class MainWrapper extends StatelessWidget {
   const MainWrapper({super.key});
@@ -21,6 +22,7 @@ class MainWrapper extends StatelessWidget {
           if(snapshot.data == null){
             return const Login();
           }else{
+            NortificationService().uploadFcmToken();
             return const OrderType();
           }
         }

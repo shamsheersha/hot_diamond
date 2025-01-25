@@ -29,11 +29,16 @@ class ItemService {
   //! fetchItemById method
   Future<ItemModel> fetchItemById(String itemId) async {
     final docSnapshot = await _firestore.collection('items').doc(itemId).get();
-    
+
     if (!docSnapshot.exists) {
       throw Exception('Item not found');
     }
-    
+
     return ItemModel.fromFireStore(docSnapshot);
+  }
+
+  //! updateItem method
+  Future<void> updateItem(ItemModel item) async {
+    await _firestore.collection('items').doc(item.id).set(item.toMap(), SetOptions(merge: true));
   }
 }

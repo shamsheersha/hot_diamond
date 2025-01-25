@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/category/category_bloc.dart';
@@ -10,6 +13,7 @@ import 'package:hot_diamond_users/src/controllers/location/location_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/location/location_event.dart';
 import 'package:hot_diamond_users/src/controllers/location/location_state.dart';
 import 'package:hot_diamond_users/src/controllers/user_details/user_details_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/user_details/user_details_state.dart';
 import 'package:hot_diamond_users/src/screens/home/home_screen/widget/side_profile_view_widget.dart';
 import 'package:hot_diamond_users/src/screens/home/home_screen/widget/user_avatar_widget.dart';
 import 'package:hot_diamond_users/src/screens/home/search_items/search_items.dart';
@@ -20,22 +24,27 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
+    // notificationHandler();
     context.read<ItemBloc>().add(FetchAllItemsEvent());
     context.read<LocationBloc>().add(FetchLocationEvent());
     context.read<CategoryBloc>().add(const FetchCategoriesEvent());
     context.read<FavoriteBloc>().add(LoadFavorites());
   }
-
+  // void notificationHandler(){
+  //   FirebaseMessaging.onMessage.listen((event)async{
+  //     log(event.notification!.title.toString());
+  //   });
+  // }
   void _onSearchChanged(String query) {
     setState(() {
       _searchQuery = query; // Update the search query

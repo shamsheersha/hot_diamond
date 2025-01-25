@@ -1,4 +1,6 @@
-part of 'user_details_bloc.dart';
+
+
+import 'package:equatable/equatable.dart';
 
 abstract class UserDetailsEvent extends Equatable {
   const UserDetailsEvent();
@@ -18,4 +20,17 @@ class UpdateUserDetails extends UserDetailsEvent {
     required this.email,
     required this.phoneNumber,
   });
+}
+
+class UpdateProfileImage extends UserDetailsEvent {
+  final String imagePath;
+  final String email;
+
+  const UpdateProfileImage({
+    required this.imagePath,
+    required this.email,
+  });
+
+  @override
+  List<Object> get props => [imagePath, email];
 }

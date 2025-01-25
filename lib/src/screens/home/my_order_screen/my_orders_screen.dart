@@ -13,21 +13,12 @@ class FetchOrdersScreen extends StatefulWidget {
   State<FetchOrdersScreen> createState() => _FetchOrdersScreenState();
 }
 
-class _FetchOrdersScreenState extends State<FetchOrdersScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  final List<String> _tabs = ['All', 'Pending', 'Processing', 'Delivered', 'Cancelled'];
-
+class _FetchOrdersScreenState extends State<FetchOrdersScreen>
+    with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
     context.read<OrderBloc>().add(FetchOrders());
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   @override
@@ -36,46 +27,41 @@ class _FetchOrdersScreenState extends State<FetchOrdersScreen> with SingleTicker
       appBar: AppBar(
         title: const Text('My Orders'),
         backgroundColor: Colors.grey[100],
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
-          labelColor: Colors.red[700],
-          unselectedLabelColor: Colors.grey[600],
-          indicatorColor: Colors.red[700],
-        ),
       ),
-      body: BlocBuilder<OrderBloc, OrderState>(
-        builder: (context, state) {
-          if (state is OrderLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state is OrdersLoaded) {
-            return TabBarView(
-              controller: _tabController,
-              children: _tabs.map((tab) {
-                final filteredOrders = _filterOrders(state.orders, tab);
-                return _buildOrdersList(filteredOrders);
-              }).toList(),
-            );
-          }
-
-          if (state is OrderFailure) {
-            return Center(child: Text('Error: ${state.error}'));
-          }
-
-          return const Center(child: Text('No orders found'));
+      body: RefreshIndicator(
+        onRefresh: () async {
+          context.read<OrderBloc>().add(FetchOrders());
         },
+        color: Colors.black,
+        child: BlocBuilder<OrderBloc, OrderState>(
+          builder: (context, state) {
+            if (state is OrderLoading) {
+              return const Center(
+                  child: CircularProgressIndicator(color: Colors.black));
+            }
+
+            if (state is OrdersLoaded) {
+              return _buildOrdersList(state.orders);
+            }
+
+            if (state is OrderFailure) {
+              return Center(child: Text('Error: ${state.error}'));
+            }
+
+            return const Center(child: Text('No orders found'));
+          },
+        ),
       ),
     );
   }
 
   List<OrderModel> _filterOrders(List<OrderModel> orders, String tab) {
     if (tab == 'All') return orders;
-    return orders.where((order) => 
-      order.status.toString().split('.').last.toLowerCase() == tab.toLowerCase()
-    ).toList();
+    return orders
+        .where((order) =>
+            order.status.toString().split('.').last.toLowerCase() ==
+            tab.toLowerCase())
+        .toList();
   }
 
   Widget _buildOrdersList(List<OrderModel> orders) {
@@ -115,35 +101,42 @@ class _FetchOrdersScreenState extends State<FetchOrdersScreen> with SingleTicker
               ],
             ),
             const SizedBox(height: 4),
-            Text(
-              DateFormat('MMM dd, yyyy').format(order.createdAt),
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-                fontWeight: FontWeight.normal,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today,
+                        size: 14, color: Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      DateFormat('MMM dd, yyyy').format(order.createdAt),
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                if (order.status == OrderStatus.pending ||
+                    order.status == OrderStatus.processing)
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      side: BorderSide(color: Colors.red[700]!),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    minimumSize: const Size(0, 25),
+                    ),
+                    onPressed: () => _showCancelConfirmation(order),
+                    child: const Text('Cancel Order',style: TextStyle(color: Colors.red),),
+                  ),
+              ],
             ),
           ],
         ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${order.items.length} items',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-              Text(
-                '₹${order.totalAmount.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-            ],
-          ),
-        ),
+        subtitle: _buildOrderTimeline(order),
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
@@ -166,25 +159,102 @@ class _FetchOrdersScreenState extends State<FetchOrdersScreen> with SingleTicker
     );
   }
 
+  Future<void> _showCancelConfirmation(OrderModel order) async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Order'),
+        content: const Text('Are you sure you want to cancel this order?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('NO'),
+          ),
+          TextButton(
+            onPressed: () {
+              context.read<OrderBloc>().add(
+                    UpdateOrderStatus(
+                      orderId: order.id,
+                      newStatus: OrderStatus.cancelled,
+                    ),
+                  );
+              Navigator.of(context).pop();
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('YES'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderTimeline(OrderModel order) {
+    final steps = [
+      OrderStatus.pending,
+      OrderStatus.processing,
+      OrderStatus.shipped,
+      OrderStatus.delivered
+    ];
+
+    final currentIndex = steps.indexOf(order.status);
+    if (currentIndex == -1) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Row(
+        children: List.generate(steps.length * 2 - 1, (index) {
+          if (index.isEven) {
+            final stepIndex = index ~/ 2;
+            final isCompleted = stepIndex <= currentIndex;
+            return Expanded(
+              child: Container(
+                height: 4,
+                color: isCompleted ? Colors.green : Colors.grey[300],
+              ),
+            );
+          }
+          return Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color:
+                  index ~/ 2 <= currentIndex ? Colors.green : Colors.grey[300],
+            ),
+            child: Icon(
+              _getStatusIcon(steps[index ~/ 2]),
+              size: 12,
+              color: Colors.white,
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
   Widget _buildStatusChip(OrderStatus status) {
     final colors = {
       OrderStatus.pending: Colors.orange,
+      OrderStatus.confirmed: Colors.blue[300],
       OrderStatus.processing: Colors.blue,
+      OrderStatus.shipped: Colors.amber,
       OrderStatus.delivered: Colors.green,
       OrderStatus.cancelled: Colors.red,
     };
 
+    final color = colors[status] ?? Colors.grey;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: colors[status]!.withOpacity(0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors[status]!.withOpacity(0.5)),
+        border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Text(
         status.toString().split('.').last,
         style: TextStyle(
-          color: colors[status],
+          color: color,
           fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
@@ -214,10 +284,20 @@ class _FetchOrdersScreenState extends State<FetchOrdersScreen> with SingleTicker
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.network(
-              item.item.imageUrls.first,
+              item.item.imageUrls.isNotEmpty
+                  ? item.item.imageUrls.first
+                  : 'placeholder_url',
               width: 60,
               height: 60,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 60,
+                  height: 60,
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.image_not_supported),
+                );
+              },
             ),
           ),
           const SizedBox(width: 12),
@@ -260,6 +340,21 @@ class _FetchOrdersScreenState extends State<FetchOrdersScreen> with SingleTicker
         Text('Phone: ${address.phoneNumber}'),
       ],
     );
+  }
+
+  IconData _getStatusIcon(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return Icons.access_time;
+      case OrderStatus.processing:
+        return Icons.sync;
+      case OrderStatus.shipped:
+        return Icons.local_shipping;
+      case OrderStatus.delivered:
+        return Icons.check;
+      default:
+        return Icons.circle;
+    }
   }
 
   Widget _buildPaymentInfo(OrderModel order) {
