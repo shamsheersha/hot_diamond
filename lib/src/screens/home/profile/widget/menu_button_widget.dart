@@ -4,12 +4,16 @@ class MenuButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onPressed;
+  final Color? textColor;
+  final Color? iconColor;
 
   const MenuButton({
     super.key,
     required this.icon,
     required this.label,
     required this.onPressed,
+    this.iconColor,
+    this.textColor,
   });
 
   @override
@@ -24,6 +28,8 @@ class MenuButton extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
+        iconColor: iconColor,
+        textStyle: TextStyle(color: textColor),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),

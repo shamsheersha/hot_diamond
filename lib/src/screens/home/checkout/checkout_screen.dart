@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/cart/cart_event.dart';
+import 'package:hot_diamond_users/src/controllers/connectivity/connectivity_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/connectivity/connectivity_event.dart';
+import 'package:hot_diamond_users/src/controllers/connectivity/connectivity_state.dart';
 import 'package:hot_diamond_users/src/controllers/order/order_bloc.dart';
 import 'package:hot_diamond_users/src/enum/checkout_enums.dart';
+import 'package:hot_diamond_users/src/screens/connectivity_checker/no_internet_screen.dart';
 import 'package:hot_diamond_users/src/screens/home/my_order_screen/my_orders_screen.dart';
 import 'package:hot_diamond_users/widgets/show_custom%20_snakbar.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
@@ -46,23 +50,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
     showCustomSnackbar(context, 'Payment Successful! Order Placed.');
-    // clear cart items
     context.read<CartBloc>().add(ClearCart());
-    // create order
-    final cartState = context.read<CartBloc>().state;
-    if (cartState is CartUpdated) {
-      // Calculate total amount
-      final totalAmount = cartState.items.fold(
-        0.0,
-        (sum, item) => sum + (item.totalPrice),
-      );
-
-      context.read<OrderBloc>().add(CreateOrder(
-          items: cartState.items,
-          deliveryAddress: _selectedAddress!,
-          totalAmount: totalAmount,
-          paymentMethod: PaymentMethod.razorpay));
-    }
+    _createOrder(PaymentMethod.razorpay);
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -70,7 +59,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
-    showCustomSnackbar(context, 'External Wallet Selected: ${response.walletName}');
+    showCustomSnackbar(
+        context, 'External Wallet Selected: ${response.walletName}');
   }
 
   void _startRazorpayPayment(double amount) {
@@ -95,106 +85,124 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Checkout'),
-        backgroundColor: Colors.grey[100],
-      ),
-      body: BlocConsumer<OrderBloc, OrderState>(
-        listener: (context, state) {
-          if (state is OrderSuccess) {
-            showCustomSnackbar(context, 'Order placed successfully!');
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const FetchOrdersScreen()));
-          }
-        },
-        builder: (context, state) {
-          if (state is OrderLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          return BlocBuilder<CartBloc, CartState>(
-            builder: (context, cartState) {
-              if (cartState is! CartUpdated) {
-                return const Center(child: CircularProgressIndicator(color: Colors.black,));
-              }
+    return BlocBuilder<ConnectivityBloc, ConnectivityState>(
+      builder: (context, connectivityState) {
+        if (!connectivityState.isConnected) {
+          return NoInternetScreen(
+            onRetry: () {
+              context.read<ConnectivityBloc>().add(CheckConnectivity());
+            },
+          );
+        }
 
-              return Theme(
-                data: Theme.of(context).copyWith(
-                  colorScheme: ColorScheme.light(
-                    primary: Colors.red[700]!,
-                    secondary: Colors.red[700]!,
+        return Scaffold(
+        appBar: AppBar(
+          title: const Text('Checkout'),
+          backgroundColor: Colors.grey[100],
+        ),
+        body: BlocConsumer<OrderBloc, OrderState>(
+          listener: (context, state) {
+            if (state is OrderSuccess) {
+              showCustomSnackbar(context, 'Order placed successfully!');
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                    builder: (context) => const FetchOrdersScreen()),
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state is OrderLoading) {
+              return const Center(
+                  child: CircularProgressIndicator(
+                color: Colors.black,
+              ));
+            }
+            return BlocBuilder<CartBloc, CartState>(
+              builder: (context, cartState) {
+                if (cartState is! CartUpdated) {
+                  return const Center(
+                      child: CircularProgressIndicator(color: Colors.black));
+                }
+
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: ColorScheme.light(
+                      primary: Colors.red[700]!,
+                      secondary: Colors.red[700]!,
+                    ),
                   ),
-                ),
-                child: Stepper(
-                  currentStep: _currentStep,
-                  onStepContinue: () {
-                    if (_currentStep < 2) {
-                      setState(() => _currentStep++);
-                    } else {
-                      _processOrder(cartState.items);
-                    }
-                  },
-                  onStepCancel: () {
-                    if (_currentStep > 0) {
-                      setState(() => _currentStep--);
-                    }
-                  },
-                  steps: [
-                    _buildDeliveryStep(),
-                    _buildOrderSummaryStep(cartState.items),
-                    _buildPaymentStep(),
-                  ],
-                  controlsBuilder: (context, details) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red[700],
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              onPressed: details.onStepContinue,
-                              child: Text(
-                                _currentStep == 2 ? 'Place Order' : 'Continue',
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                          if (_currentStep > 0) ...[
-                            const SizedBox(width: 12),
+                  child: Stepper(
+                    currentStep: _currentStep,
+                    onStepContinue: () {
+                      if (_currentStep < 2) {
+                        setState(() => _currentStep++);
+                      } else {
+                        _processOrder(cartState.items);
+                      }
+                    },
+                    onStepCancel: () {
+                      if (_currentStep > 0) {
+                        setState(() => _currentStep--);
+                      }
+                    },
+                    steps: [
+                      _buildDeliveryStep(),
+                      _buildOrderSummaryStep(cartState.items),
+                      _buildPaymentStep(),
+                    ],
+                    controlsBuilder: (context, details) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: Row(
+                          children: [
                             Expanded(
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red[700],
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 16),
-                                  side: BorderSide(color: Colors.red[700]!),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                onPressed: details.onStepCancel,
-                                child: const Text('Back'),
+                                onPressed: details.onStepContinue,
+                                child: Text(
+                                  _currentStep == 2
+                                      ? 'Place Order'
+                                      : 'Continue',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
                               ),
                             ),
+                            if (_currentStep > 0) ...[
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
+                                    side: BorderSide(color: Colors.red[700]!),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  onPressed: details.onStepCancel,
+                                  child: const Text('Back'),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          );
-        },
-      ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      );
+      }
     );
   }
 
@@ -204,7 +212,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       content: BlocBuilder<AddressBloc, AddressState>(
         builder: (context, state) {
           if (state is AddressLoading) {
-            return const Center(child: CircularProgressIndicator(color: Colors.black,));
+            return const Center(
+                child: CircularProgressIndicator(color: Colors.black));
           }
 
           if (state is AddressesLoaded) {
@@ -212,25 +221,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               children: [
                 ...state.addresses.map((address) => _buildAddressCard(address)),
                 const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const AddAddressScreen(),
-                    ));
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add New Address'),
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 92,
-                    ),
-                    side: BorderSide(color: Colors.red[700]!),
-                  ),
-                ),
+                _buildAddAddressButton(),
               ],
             );
           }
@@ -273,57 +264,92 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          address.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        if (address.isDefault) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Default',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                    _buildAddressHeader(address),
                     const SizedBox(height: 4),
-                    Text(
-                      '${address.houseNumber}, ${address.roadName}',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                    Text(
-                      '${address.city}, ${address.state} - ${address.pincode}',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Phone: ${address.phoneNumber}',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
+                    _buildAddressDetails(address),
                   ],
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAddressHeader(Address address) {
+    return Row(
+      children: [
+        Text(
+          address.name,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        if (address.isDefault) ...[
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 2,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'Default',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildAddressDetails(Address address) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${address.houseNumber}, ${address.roadName}',
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+        Text(
+          '${address.city}, ${address.state} - ${address.pincode}',
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Phone: ${address.phoneNumber}',
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddAddressButton() {
+    return OutlinedButton.icon(
+      onPressed: () {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => const AddAddressScreen(),
+        ));
+      },
+      icon: const Icon(Icons.add),
+      label: const Text('Add New Address'),
+      style: OutlinedButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.symmetric(
+          vertical: 12,
+          horizontal: 92,
+        ),
+        side: BorderSide(color: Colors.red[700]!),
       ),
     );
   }
@@ -355,39 +381,54 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              item.item.imageUrls.first,
-              width: 60,
-              height: 60,
-              fit: BoxFit.cover,
-            ),
-          ),
+          _buildItemImage(item),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  item.item.name,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-                if (item.selectedVariation != null)
-                  Text(
-                    item.selectedVariation!.displayName,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                  ),
+                _buildItemName(item),
+                if (item.selectedVariation != null) _buildItemVariation(item),
                 const SizedBox(height: 4),
-                Text(
-                  '₹${item.totalPrice.toStringAsFixed(2)} (${item.quantity} items)',
-                  style: TextStyle(color: Colors.grey[700]),
-                ),
+                _buildItemPrice(item),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildItemImage(CartItem item) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.network(
+        item.item.imageUrls.first,
+        width: 60,
+        height: 60,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  Widget _buildItemName(CartItem item) {
+    return Text(
+      item.item.name,
+      style: const TextStyle(fontWeight: FontWeight.w500),
+    );
+  }
+
+  Widget _buildItemVariation(CartItem item) {
+    return Text(
+      item.selectedVariation!.displayName,
+      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+    );
+  }
+
+  Widget _buildItemPrice(CartItem item) {
+    return Text(
+      '₹${item.totalPrice.toStringAsFixed(2)} (${item.quantity} items)',
+      style: TextStyle(color: Colors.grey[700]),
     );
   }
 
@@ -508,33 +549,32 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    // Calculate total amount
     final totalAmount = items.fold(
       0.0,
       (sum, item) => sum + (item.totalPrice),
     );
 
     if (_selectedPaymentMethod == 'razorpay') {
-      // Start Razorpay payment
       _startRazorpayPayment(totalAmount);
     } else if (_selectedPaymentMethod == 'cod') {
-      // clear cart
       context.read<CartBloc>().add(ClearCart());
-      // create order
-      final cartState = context.read<CartBloc>().state;
-      if (cartState is CartUpdated) {
-        // Calculate total amount
-        final totalAmount = cartState.items.fold(
-          0.0,
-          (sum, item) => sum + (item.totalPrice),
-        );
+      _createOrder(PaymentMethod.cod);
+    }
+  }
 
-        context.read<OrderBloc>().add(CreateOrder(
-            items: cartState.items,
-            deliveryAddress: _selectedAddress!,
-            totalAmount: totalAmount,
-            paymentMethod: PaymentMethod.cod));
-      }
+  void _createOrder(PaymentMethod paymentMethod) {
+    final cartState = context.read<CartBloc>().state;
+    if (cartState is CartUpdated) {
+      final totalAmount = cartState.items.fold(
+        0.0,
+        (sum, item) => sum + (item.totalPrice),
+      );
+
+      context.read<OrderBloc>().add(CreateOrder(
+          items: cartState.items,
+          deliveryAddress: _selectedAddress!,
+          totalAmount: totalAmount,
+          paymentMethod: paymentMethod));
     }
   }
 }

@@ -198,4 +198,65 @@ class AuthRepository {
     // If no current user is logged in
     return null;
   }
+
+  //! DELETE USER ACCOUNT
+
+   Future<void> deleteAccount(String password) async {
+    try {
+      // Get current user
+      final user = _firebaseAuth.currentUser;
+      if (user == null) throw 'No user is currently signed in';
+
+      // Reauthenticate user before deletion
+      AuthCredential credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+
+      await user.reauthenticateWithCredential(credential);
+
+      // Delete user data from Firestore
+      final uid = user.uid;
+      
+      // Delete user's cart items
+      await _firestore.collection('cart').doc(uid).delete();
+      
+      // Delete user's favorite items
+      await _firestore.collection('favorites').doc(uid).delete();
+      
+      // Delete user's orders
+      final ordersQuery = await _firestore.collection('orders').where('userId', isEqualTo: uid).get();
+      for (var doc in ordersQuery.docs) {
+        await doc.reference.delete();
+      }
+      
+      // Delete user's addresses
+      final addressQuery = await _firestore.collection('addresses').where('userId', isEqualTo: uid).get();
+      for (var doc in addressQuery.docs) {
+        await doc.reference.delete();
+      }
+
+      // Delete user profile
+      await _firestore.collection('users').doc(uid).delete();
+
+      // Delete user authentication account
+      await user.delete();
+
+      // Sign out from Google if it was a Google account
+      await _googleSignIn.signOut();
+      
+      // Clear any local auth state
+      await _firebaseAuth.signOut();
+
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'wrong-password') {
+        handleError('Incorrect password');
+      } else {
+        handleError('Failed to delete account: ${e.message}');
+      }
+    } catch (e) {
+      handleError('Failed to delete account: $e');
+    }
+  }
 }
+

@@ -40,23 +40,18 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize controllers with existing data if editing
-    _nameController =
-        TextEditingController(text: widget.addressToEdit?.name ?? '');
-    _phoneController =
-        TextEditingController(text: widget.addressToEdit?.phoneNumber ?? '');
-    _pincodeController =
-        TextEditingController(text: widget.addressToEdit?.pincode ?? '');
-    _stateController =
-        TextEditingController(text: widget.addressToEdit?.state ?? '');
-    _cityController =
-        TextEditingController(text: widget.addressToEdit?.city ?? '');
-    _houseController =
-        TextEditingController(text: widget.addressToEdit?.houseNumber ?? '');
-    _roadController =
-        TextEditingController(text: widget.addressToEdit?.roadName ?? '');
-    _landmarkController =
-        TextEditingController(text: widget.addressToEdit?.landmark ?? '');
+    _initializeControllers();
+  }
+
+  void _initializeControllers() {
+    _nameController = TextEditingController(text: widget.addressToEdit?.name ?? '');
+    _phoneController = TextEditingController(text: widget.addressToEdit?.phoneNumber ?? '');
+    _pincodeController = TextEditingController(text: widget.addressToEdit?.pincode ?? '');
+    _stateController = TextEditingController(text: widget.addressToEdit?.state ?? '');
+    _cityController = TextEditingController(text: widget.addressToEdit?.city ?? '');
+    _houseController = TextEditingController(text: widget.addressToEdit?.houseNumber ?? '');
+    _roadController = TextEditingController(text: widget.addressToEdit?.roadName ?? '');
+    _landmarkController = TextEditingController(text: widget.addressToEdit?.landmark ?? '');
 
     if (widget.addressToEdit != null) {
       _isDefaultAddress = widget.addressToEdit!.isDefault;
@@ -81,8 +76,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final address = Address(
-      id: widget.addressToEdit?.id ??
-          DateTime.now().millisecondsSinceEpoch.toString(),
+      id: widget.addressToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
       name: _nameController.text.trim(),
       phoneNumber: _phoneController.text.trim(),
       pincode: _pincodeController.text.trim(),
@@ -106,8 +100,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            widget.addressToEdit != null ? 'Edit Address' : 'Add New Address'),
+        title: Text(widget.addressToEdit != null ? 'Edit Address' : 'Add New Address'),
         backgroundColor: Colors.grey[100],
         elevation: 0,
       ),
@@ -301,40 +294,24 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        RadioListTile<AddressType>(
-          title: const Text('Home'),
-          fillColor: WidgetStateProperty.all(Colors.black),
-          value: AddressType.home,
-          groupValue: _addressType,
-          onChanged: (AddressType? value) {
-            if (value != null) {
-              setState(() => _addressType = value);
-            }
-          },
-        ),
-        RadioListTile<AddressType>(
-          fillColor: WidgetStateProperty.all(Colors.black),
-          title: const Text('Work'),
-          value: AddressType.work,
-          groupValue: _addressType,
-          onChanged: (AddressType? value) {
-            if (value != null) {
-              setState(() => _addressType = value);
-            }
-          },
-        ),
-        RadioListTile<AddressType>(
-          title: const Text('Other'),
-          fillColor: WidgetStateProperty.all(Colors.black),
-          value: AddressType.other,
-          groupValue: _addressType,
-          onChanged: (AddressType? value) {
-            if (value != null) {
-              setState(() => _addressType = value);
-            }
-          },
-        ),
+        _buildRadioTile(AddressType.home, 'Home'),
+        _buildRadioTile(AddressType.work, 'Work'),
+        _buildRadioTile(AddressType.other, 'Other'),
       ],
+    );
+  }
+
+  Widget _buildRadioTile(AddressType type, String label) {
+    return RadioListTile<AddressType>(
+      title: Text(label),
+      fillColor: MaterialStateProperty.all(Colors.black),
+      value: type,
+      groupValue: _addressType,
+      onChanged: (AddressType? value) {
+        if (value != null) {
+          setState(() => _addressType = value);
+        }
+      },
     );
   }
 
@@ -359,8 +336,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     return BlocBuilder<AddressBloc, AddressState>(
       builder: (context, state) {
         return CustomButton(
-          text:
-              widget.addressToEdit != null ? 'Update Address' : 'Save Address',
+          text: widget.addressToEdit != null ? 'Update Address' : 'Save Address',
           onPressed: state is AddressLoading ? null : _submitForm,
           isLoading: state is AddressLoading,
           color: Theme.of(context).primaryColor,

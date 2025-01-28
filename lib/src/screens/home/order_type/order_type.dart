@@ -36,7 +36,6 @@ class _OrderTypeState extends State<OrderType> {
   }
   @override
   Widget build(BuildContext context) {
-    final UserRepository userRepository = UserRepository();
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {

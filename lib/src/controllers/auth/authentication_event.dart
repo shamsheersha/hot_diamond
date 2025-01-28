@@ -47,3 +47,13 @@ class ForgotPasswordEvent extends AuthenticationEvent{
 class SignOutEvent extends AuthenticationEvent{}
 
 class GoogleSignInEvent extends AuthenticationEvent{}
+
+
+//! DELETE ACCOUNT 
+class DeleteAccountEvent extends AuthenticationEvent{
+  final String password;
+  const DeleteAccountEvent({required this.password});
+
+  @override
+  List<Object> get props => [password];
+}

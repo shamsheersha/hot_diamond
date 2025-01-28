@@ -23,9 +23,10 @@ class FavoritesPage extends StatelessWidget {
         builder: (context, state) {
           if (state is FavoritesLoading) {
             return const Center(
-                child: CircularProgressIndicator(
-              color: CustomColors.primaryColor,
-            ));
+              child: CircularProgressIndicator(
+                color: CustomColors.primaryColor,
+              ),
+            );
           } else if (state is FavoritesLoaded) {
             final favorites = state.favorites;
 
@@ -68,113 +69,139 @@ class FavoritesPage extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          WoltModalSheet.show(
-            context: context,
-            pageListBuilder: (context) => [
-              WoltModalSheetPage(
-                backgroundColor: Colors.white,
-                child: SizedBox(
-                  height: 600,
-                  child: ItemDetailsSheet(itemModel: item),
-                ),
-              )
-            ],
-          );
+          _showItemDetails(context, item);
         },
         child: Stack(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: const [
-                  BoxShadow(
-                    blurRadius: 8,
-                    spreadRadius: 2,
-                    offset: Offset(0, 2),
-                    color: Colors.grey,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Container(
-                            color: Colors.grey[200],
-                            child: Center(
-                              child: Image.asset(
-                                'assets/—Pngtree—gray network placeholder_6398266.png',
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          if (item.imageUrls.isNotEmpty)
-                            FadeInImage.assetNetwork(
-                              placeholder: 'assets/—Pngtree—gray network placeholder_6398266.png',
-                              image: item.imageUrls[0],
-                              fit: BoxFit.cover,
-                              fadeInDuration: const Duration(milliseconds: 300),
-                              imageErrorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: Image.asset(
-                                    'assets/—Pngtree—gray network placeholder_6398266.png',
-                                    fit: BoxFit.cover,
-                                  ),
-                                );
-                              },
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.name,
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '₹${item.price.toStringAsFixed(2)}',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildCardContent(context, item),
             Positioned(
-              left: 127,
+              right: 0,
               bottom: 5,
               child: FavoriteButton(item: item),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCardContent(BuildContext context, ItemModel item) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+            blurRadius: 8,
+            spreadRadius: 2,
+            offset: Offset(0, 2),
+            color: Colors.grey,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildImageSection(item),
+          _buildTextSection(item),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageSection(ItemModel item) {
+    return Expanded(
+      flex: 2,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            _buildPlaceholder(),
+            if (item.imageUrls.isNotEmpty) _buildFadeInImage(item),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      color: Colors.grey[200],
+      child: Center(
+        child: Image.asset(
+          'assets/—Pngtree—gray network placeholder_6398266.png',
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFadeInImage(ItemModel item) {
+    return FadeInImage.assetNetwork(
+      placeholder: 'assets/—Pngtree—gray network placeholder_6398266.png',
+      image: item.imageUrls[0],
+      fit: BoxFit.cover,
+      fadeInDuration: const Duration(milliseconds: 300),
+      imageErrorBuilder: (context, error, stackTrace) {
+        return _buildPlaceholder();
+      },
+    );
+  }
+
+  Widget _buildTextSection(ItemModel item) {
+    return Expanded(
+      flex: 1,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildItemName(item),
+            const SizedBox(height: 4),
+            _buildItemPrice(item),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItemName(ItemModel item) {
+    return Text(
+      item.name,
+      style: GoogleFonts.poppins(
+        fontWeight: FontWeight.w600,
+        fontSize: 14,
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  Widget _buildItemPrice(ItemModel item) {
+    return Text(
+      '₹${item.price.toStringAsFixed(2)}',
+      style: GoogleFonts.poppins(
+        fontWeight: FontWeight.w600,
+        fontSize: 14,
+        color: Colors.black87,
+      ),
+    );
+  }
+
+  void _showItemDetails(BuildContext context, ItemModel item) {
+    WoltModalSheet.show(
+      context: context,
+      pageListBuilder: (context) => [
+        WoltModalSheetPage(
+          backgroundColor: Colors.white,
+          child: SizedBox(
+            height: 600,
+            child: ItemDetailsSheet(itemModel: item),
+          ),
+        )
+      ],
     );
   }
 }

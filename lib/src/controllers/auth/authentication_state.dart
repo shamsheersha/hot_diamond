@@ -74,3 +74,17 @@ class GoogleLogInFailure extends AuthenticationState {
   @override
   List<Object> get props => [error];
 }
+
+
+//! ACCOUNT DELETION
+class DeleteAccountLoading extends AuthenticationState {}
+
+class DeleteAccountSuccess extends AuthenticationState {}
+
+class DeleteAccountFailure extends AuthenticationState {
+  final String error;
+  const DeleteAccountFailure({required this.error});
+
+  @override
+  List<Object> get props => [error];
+}

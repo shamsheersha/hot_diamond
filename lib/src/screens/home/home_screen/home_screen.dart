@@ -1,10 +1,10 @@
-import 'dart:developer';
-
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/category/category_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/category/category_event.dart';
+import 'package:hot_diamond_users/src/controllers/connectivity/connectivity_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/connectivity/connectivity_event.dart';
+import 'package:hot_diamond_users/src/controllers/connectivity/connectivity_state.dart';
 import 'package:hot_diamond_users/src/controllers/favorite/favorite_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/favorite/favorite_event.dart';
 import 'package:hot_diamond_users/src/controllers/item/item_bloc.dart';
@@ -14,6 +14,7 @@ import 'package:hot_diamond_users/src/controllers/location/location_event.dart';
 import 'package:hot_diamond_users/src/controllers/location/location_state.dart';
 import 'package:hot_diamond_users/src/controllers/user_details/user_details_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/user_details/user_details_state.dart';
+import 'package:hot_diamond_users/src/screens/connectivity_checker/no_internet_screen.dart';
 import 'package:hot_diamond_users/src/screens/home/home_screen/widget/side_profile_view_widget.dart';
 import 'package:hot_diamond_users/src/screens/home/home_screen/widget/user_avatar_widget.dart';
 import 'package:hot_diamond_users/src/screens/home/search_items/search_items.dart';
@@ -40,6 +41,7 @@ class HomeScreenState extends State<HomeScreen> {
     context.read<CategoryBloc>().add(const FetchCategoriesEvent());
     context.read<FavoriteBloc>().add(LoadFavorites());
   }
+
   // void notificationHandler(){
   //   FirebaseMessaging.onMessage.listen((event)async{
   //     log(event.notification!.title.toString());
@@ -56,84 +58,94 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GestureDetector(
-            onTap: () {
-              showDialog(
-                context: context,
-                barrierColor: Colors.black.withOpacity(0.5),
-                builder: (context) => const SideProfileView(),
-              );
-            },
-            child: BlocBuilder<UserDetailsBloc, UserDetailsState>(
-              builder: (context, state) {
-                if (state is UserDetailsLoaded) {
-                  return UserAvatar(name: state.name);
-                } else {
-                  return const UserAvatar(name: '');
-                }
-              },
-            ),
-          ),
-        ),
-        title: BlocBuilder<LocationBloc, LocationState>(
-          builder: (context, state) {
-            if (state is LocationLoaded) {
-              return Row(
-                children: [
-                  const Icon(Icons.location_on),
-                  Text("${state.city}, ${state.area}",
-                      style: CustomTextStyles.locationName),
-                ],
-              );
-            } else if (state is LocationLoading) {
-              return const Row(
-                children: [
-                  Icon(Icons.location_on),
-                  Text("Fetching location..."),
-                ],
-              );
-            } else if (state is LocationError) {
-              return const Row(
-                children: [
-                  Icon(Icons.location_on),
-                  Text("Location unavailable"),
-                ],
-              );
-            } else {
-              return const Row(
-                children: [
-                  Icon(Icons.location_on),
-                  Text("Location"),
-                ],
-              );
-            }
+    return BlocBuilder<ConnectivityBloc, ConnectivityState>(
+        builder: (context, connectivityState) {
+      if (!connectivityState.isConnected) {
+        return NoInternetScreen(
+          onRetry: () {
+            context.read<ConnectivityBloc>().add(CheckConnectivity());
           },
-        ),
-        actions: [
-          Padding(
+        );
+      }
+      return Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: IconButton(
-              onPressed: () {
-                showSearch(
+            child: GestureDetector(
+              onTap: () {
+                showDialog(
                   context: context,
-                  delegate: ItemSearchDelegate(_searchController),
+                  barrierColor: Colors.black.withOpacity(0.5),
+                  builder: (context) => const SideProfileView(),
                 );
               },
-              icon: const Icon(Icons.search),
+              child: BlocBuilder<UserDetailsBloc, UserDetailsState>(
+                builder: (context, state) {
+                  if (state is UserDetailsLoaded) {
+                    return UserAvatar(name: state.name);
+                  } else {
+                    return const UserAvatar(name: '');
+                  }
+                },
+              ),
             ),
           ),
-        ],
-        backgroundColor: Colors.grey[100],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.only(top: 12),
-        child: ShowCategory(searchQuery: _searchQuery),
-      ),
-    );
+          title: BlocBuilder<LocationBloc, LocationState>(
+            builder: (context, state) {
+              if (state is LocationLoaded) {
+                return Row(
+                  children: [
+                    const Icon(Icons.location_on),
+                    Text("${state.city}, ${state.area}",
+                        style: CustomTextStyles.locationName),
+                  ],
+                );
+              } else if (state is LocationLoading) {
+                return const Row(
+                  children: [
+                    Icon(Icons.location_on),
+                    Text("Fetching location..."),
+                  ],
+                );
+              } else if (state is LocationError) {
+                return const Row(
+                  children: [
+                    Icon(Icons.location_on),
+                    Text("Location unavailable"),
+                  ],
+                );
+              } else {
+                return const Row(
+                  children: [
+                    Icon(Icons.location_on),
+                    Text("Location"),
+                  ],
+                );
+              }
+            },
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                onPressed: () {
+                  showSearch(
+                    context: context,
+                    delegate: ItemSearchDelegate(_searchController),
+                  );
+                },
+                icon: const Icon(Icons.search),
+              ),
+            ),
+          ],
+          backgroundColor: Colors.grey[100],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: ShowCategory(searchQuery: _searchQuery),
+        ),
+      );
+    });
   }
 }

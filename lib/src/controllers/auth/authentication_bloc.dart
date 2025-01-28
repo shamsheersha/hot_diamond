@@ -50,6 +50,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       }
     },);
 
+    //! Log Out Event
     on<SignOutEvent>((event, emit) async {
       emit(LogOutLoading());
       try {
@@ -62,7 +63,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       }
     });
 
-
+    //! Google Sign In Event
     on<GoogleSignInEvent>((event, emit) async {
       emit(GoogleLogInLoading());
       try {
@@ -74,6 +75,16 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         
       } catch (e) {
         emit(GoogleLogInFailure(error: e.toString()));
+      }
+    });
+    //! DELETE ACCOUNT
+    on<DeleteAccountEvent>((event, emit) async {
+      emit(DeleteAccountLoading());
+      try {
+        await authRepository.deleteAccount(event.password);
+        emit(DeleteAccountSuccess());
+      } catch (e) {
+        emit(DeleteAccountFailure(error: e.toString()));
       }
     });
   }

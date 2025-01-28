@@ -12,6 +12,8 @@ import 'package:hot_diamond_users/src/controllers/address/address_event.dart';
 import 'package:hot_diamond_users/src/controllers/cart/cart_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/cart/cart_event.dart';
 import 'package:hot_diamond_users/src/controllers/category/category_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/connectivity/connectivity_bloc.dart';
+import 'package:hot_diamond_users/src/controllers/connectivity/connectivity_event.dart';
 import 'package:hot_diamond_users/src/controllers/favorite/favorite_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/favorite/favorite_event.dart';
 import 'package:hot_diamond_users/src/controllers/item/item_bloc.dart';
@@ -19,6 +21,7 @@ import 'package:hot_diamond_users/src/controllers/location/location_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/location/location_event.dart';
 import 'package:hot_diamond_users/src/controllers/order/order_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/user_details/user_details_event.dart';
+import 'package:hot_diamond_users/src/screens/connectivity_checker/connecitivity_checker.dart';
 import 'package:hot_diamond_users/src/screens/home/splash/splash.dart';
 import 'package:hot_diamond_users/src/controllers/auth/authentication_bloc.dart';
 import 'package:hot_diamond_users/src/controllers/splash/splash_bloc.dart';
@@ -27,6 +30,7 @@ import 'package:hot_diamond_users/src/services/add_addresses.dart';
 import 'package:hot_diamond_users/src/services/auth_repository.dart';
 import 'package:hot_diamond_users/src/services/cart_services.dart';
 import 'package:hot_diamond_users/src/services/cloudinary_serivce.dart';
+import 'package:hot_diamond_users/src/services/connectivity_service/connectivity_service.dart';
 import 'package:hot_diamond_users/src/services/item_service.dart';
 import 'package:hot_diamond_users/src/services/notification_service/nortification_service.dart';
 import 'package:hot_diamond_users/src/services/order_service.dart';
@@ -72,13 +76,18 @@ class MyApp extends StatelessWidget {
 
     return MultiBlocProvider(
         providers: [
+          BlocProvider(
+            create: (context) => ConnectivityBloc(connectivityService: ConnectivityService()
+            )..add(CheckConnectivity()),
+          ),
           BlocProvider(create: (context) => SplashBloc()..add(StartSplash())),
           BlocProvider(
               create: (context) => AuthenticationBloc(authRepository: auth)),
           BlocProvider(
-              create: (context) =>
-                  UserDetailsBloc(imageService: ImageCloudinaryService(), authRepository: AuthRepository())
-                    ..add(FetchUserDetails())),
+              create: (context) => UserDetailsBloc(
+                  imageService: ImageCloudinaryService(),
+                  authRepository: AuthRepository())
+                ..add(FetchUserDetails())),
           BlocProvider(
               create: (context) =>
                   LocationBloc(locationController: locationService)
@@ -106,6 +115,6 @@ class MyApp extends StatelessWidget {
             theme: ThemeData(
                 primaryColor: Colors.red,
                 scaffoldBackgroundColor: Colors.grey[100]),
-            home: const Splash()));
+            home: const ConnectivityChecker(child: Splash())));
   }
 }
