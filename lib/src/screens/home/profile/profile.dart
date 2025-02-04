@@ -13,6 +13,7 @@ import 'package:hot_diamond_users/src/screens/home/favorite_items/favorite_items
 import 'package:hot_diamond_users/src/screens/home/my_order_screen/my_orders_screen.dart';
 import 'package:hot_diamond_users/src/screens/home/profile/widget/menu_button_widget.dart';
 import 'package:hot_diamond_users/src/screens/home/user_details_view/user_details_view.dart';
+import 'package:hot_diamond_users/src/screens/privacy_policy/privacy_policy.dart';
 import 'package:hot_diamond_users/src/screens/term_&_coditions/terms_and%20_conditions.dart';
 import 'package:hot_diamond_users/utils/style/custom_text_styles.dart';
 
@@ -206,7 +207,14 @@ class Profile extends StatelessWidget {
               icon: Icons.security,
               label: 'Privacy Policy',
               onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const TermsConditionsScreen()),
+                MaterialPageRoute(builder: (context) =>  const PrivacyPolicyScreen()),
+              ),
+            ),
+            MenuButton(
+              icon: Icons.description,
+              label: 'Terms and Conditions',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) =>  const TermsAndConditionsScreen()),
               ),
             ),
             MenuButton(

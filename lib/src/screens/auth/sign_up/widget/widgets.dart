@@ -1,4 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:hot_diamond_users/src/screens/privacy_policy/privacy_policy.dart';
+import 'package:hot_diamond_users/src/screens/term_&_coditions/terms_and%20_conditions.dart';
 import 'package:hot_diamond_users/utils/style/custom_text_styles.dart';
 import 'package:hot_diamond_users/widgets/custom_Button.dart';
 import 'package:hot_diamond_users/src/screens/auth/widgets/custom_textfield.dart';
@@ -25,7 +28,8 @@ class SignUpForm extends StatelessWidget {
   });
 
   // Email regex pattern for validation
-  final String emailPattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+  final String emailPattern =
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
 
   // Name TextField Widget
   Widget buildNameTextField() {
@@ -36,9 +40,8 @@ class SignUpForm extends StatelessWidget {
       keyboardType: TextInputType.text,
       autoFocus: false,
       isPassword: false,
-      validator: (value) => value == null || value.trim().isEmpty
-          ? 'Name is required'
-          : null,
+      validator: (value) =>
+          value == null || value.trim().isEmpty ? 'Name is required' : null,
     );
   }
 
@@ -169,6 +172,54 @@ class SignUpForm extends StatelessWidget {
                   buildPhoneNumberField(),
                   const SizedBox(height: 20),
                   buildSignUpButton(),
+                  const SizedBox(height: 10),
+                  RichText(
+                    text: TextSpan(
+                      text: 'By signing up, you agree to our ',
+                      style: const TextStyle(fontSize: 12, color: Colors.black),
+                      children: [
+                        TextSpan(
+                          text: 'Terms and Conditions',
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      TermsAndConditionsScreen(),
+                                ),
+                              );
+                            },
+                        ),
+                        const TextSpan(
+                          text: ' and ',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                        TextSpan(
+                          text: 'Privacy Policy',
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PrivacyPolicyScreen(),
+                                ),
+                              );
+                            },
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

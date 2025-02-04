@@ -57,7 +57,8 @@ class SignUp extends StatelessWidget {
                           password: _passwordController.text.trim(),
                           phoneNumber: _phoneNumberController.text.trim()));
                     }
-                  })
+                  }),
+
             ],
           );
         }),

@@ -15,6 +15,7 @@ import 'package:hot_diamond_users/src/model/item/item_model.dart';
 import 'package:hot_diamond_users/src/screens/home/cart_page/cart_screen.dart';
 import 'package:hot_diamond_users/src/screens/home/item_grid_view/item_grid_view.dart';
 import 'package:hot_diamond_users/src/screens/home/showcategory/widgets/category_design.dart';
+import 'package:hot_diamond_users/src/screens/home/showcategory/widgets/item_display.dart';
 import 'package:hot_diamond_users/utils/colors/custom_colors.dart';
 
 class ShowCategory extends StatelessWidget {
@@ -24,6 +25,8 @@ class ShowCategory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isWeb = MediaQuery.of(context).size.width > 800;
+
     return RefreshIndicator(
       onRefresh: () async {
         context.read<ItemBloc>().add(FetchAllItemsEvent());
@@ -33,7 +36,8 @@ class ShowCategory extends StatelessWidget {
         builder: (context, state) {
           if (state is CategoryLoading) {
             return const Center(
-              child: CircularProgressIndicator(color: CustomColors.primaryColor),
+              child:
+                  CircularProgressIndicator(color: CustomColors.primaryColor),
             );
           } else if (state is CategoryError) {
             return Center(child: Text('Error: ${state.message}'));
@@ -43,8 +47,10 @@ class ShowCategory extends StatelessWidget {
                 children: [
                   Column(
                     children: [
-                      _buildCategorySelection(context, state),
-                      _buildItemsDisplay(context, state),
+                      _buildCategorySelection(context, state, isWeb),
+                      // _buildItemsDisplay(context, state),
+                      ItemsDisplay(
+                          categoryState: state, searchQuery: searchQuery)
                     ],
                   ),
                   _buildCartButton(context),
@@ -59,36 +65,55 @@ class ShowCategory extends StatelessWidget {
     );
   }
 
-  Widget _buildCategorySelection(BuildContext context, CategoryLoaded state) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: SizedBox(
-        height: 40,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: state.categories.length + 1,
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return CategoryDesign(
-                category: CategoryModel(id: 'all', name: 'All Items'),
-                isSelected: state.selectedCategoryId == 'all',
-                onTap: () {
-                  context.read<ItemBloc>().add(FetchAllItemsEvent());
-                  context.read<CategoryBloc>().add(const SelectCategoryEvent('all'));
-                },
-              );
-            } else {
-              final category = state.categories[index - 1];
-              return CategoryDesign(
-                category: category,
-                isSelected: category.id == state.selectedCategoryId,
-                onTap: () {
-                  context.read<ItemBloc>().add(FetchItemsByCategoryEvent(categoryId: category.id));
-                  context.read<CategoryBloc>().add(SelectCategoryEvent(category.id));
-                },
-              );
-            }
-          },
+  Widget _buildCategorySelection(
+      BuildContext context, CategoryLoaded state, bool isWeb) {
+    return Container(
+      width: double.infinity,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          vertical: 12,
+          horizontal: isWeb ? 32 : 8,
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: isWeb ? 1200 : double.infinity,
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment:
+                  isWeb ? MainAxisAlignment.center : MainAxisAlignment.start,
+              children: [
+                CategoryDesign(
+                  category: CategoryModel(id: 'all', name: 'All Items'),
+                  isSelected: state.selectedCategoryId == 'all',
+                  isWeb: isWeb,
+                  onTap: () {
+                    context.read<ItemBloc>().add(FetchAllItemsEvent());
+                    context
+                        .read<CategoryBloc>()
+                        .add(const SelectCategoryEvent('all'));
+                  },
+                ),
+                ...state.categories.map((category) => CategoryDesign(
+                      category: category,
+                      isSelected: category.id == state.selectedCategoryId,
+                      isWeb: isWeb,
+                      onTap: () {
+                        context.read<ItemBloc>().add(
+                            FetchItemsByCategoryEvent(categoryId: category.id));
+                        context
+                            .read<CategoryBloc>()
+                            .add(SelectCategoryEvent(category.id));
+                      },
+                    )),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -114,7 +139,8 @@ class ShowCategory extends StatelessWidget {
           }
 
           final filteredItems = itemState.items
-              .where((item) => item.name.toLowerCase().contains(searchQuery.toLowerCase()))
+              .where((item) =>
+                  item.name.toLowerCase().contains(searchQuery.toLowerCase()))
               .toList();
 
           final groupedItems = _groupItemsByCategory(context, filteredItems);
@@ -312,7 +338,8 @@ class ShowCategory extends StatelessWidget {
     );
   }
 
-  Map<String, List<ItemModel>> _groupItemsByCategory(BuildContext context, List<ItemModel> items) {
+  Map<String, List<ItemModel>> _groupItemsByCategory(
+      BuildContext context, List<ItemModel> items) {
     final categoryState = context.read<CategoryBloc>().state;
 
     if (categoryState is! CategoryLoaded) {
@@ -344,12 +371,15 @@ class ShowCategory extends StatelessWidget {
         if (item.selectedVariation != null) {
           return total +
               (item.item.hasValidOffer
-                  ? item.item.calculateDiscountedPrice(item.selectedVariation!.price) * item.quantity
+                  ? item.item.calculateDiscountedPrice(
+                          item.selectedVariation!.price) *
+                      item.quantity
                   : item.selectedVariation!.price * item.quantity);
         } else {
           return total +
               (item.item.hasValidOffer
-                  ? item.item.calculateDiscountedPrice(item.item.price) * item.quantity
+                  ? item.item.calculateDiscountedPrice(item.item.price) *
+                      item.quantity
                   : item.item.price * item.quantity);
         }
       },

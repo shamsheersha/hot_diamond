@@ -13,20 +13,26 @@ class ItemGridView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check if the screen width is large enough to be considered web
+    final isWeb = MediaQuery.of(context).size.width > 800;
+    
     return SingleChildScrollView(
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.75,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: isWeb ? 4 : 2,  // 4 items for web, 2 for mobile
+          childAspectRatio: isWeb ? 0.8 : 0.75,  // Adjusted ratio for web
+          crossAxisSpacing: isWeb ? 16 : 10,  // Increased spacing for web
+          mainAxisSpacing: isWeb ? 16 : 10,
         ),
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
-          return ItemCard(item: item);
+          return ItemCard(
+            item: item,
+            isWeb: isWeb,
+          );
         },
       ),
     );
@@ -35,8 +41,13 @@ class ItemGridView extends StatelessWidget {
 
 class ItemCard extends StatelessWidget {
   final ItemModel item;
+  final bool isWeb;
 
-  const ItemCard({super.key, required this.item});
+  const ItemCard({
+    super.key, 
+    required this.item,
+    required this.isWeb,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -143,9 +154,9 @@ class ItemCard extends StatelessWidget {
 
   Widget _buildTextSection(BuildContext context) {
     return SizedBox(
-      height: 85,
+      height: isWeb ? 95 : 85,  // Increased height for web
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: EdgeInsets.all(isWeb ? 12 : 8),  // Increased padding for web
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +175,7 @@ class ItemCard extends StatelessWidget {
       item.name,
       style: GoogleFonts.poppins(
         fontWeight: FontWeight.w600,
-        fontSize: 12,
+        fontSize: isWeb ? 14 : 12,  // Larger font for web
       ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
@@ -176,7 +187,7 @@ class ItemCard extends StatelessWidget {
       item.description,
       style: GoogleFonts.poppins(
         fontWeight: FontWeight.w400,
-        fontSize: 11,
+        fontSize: isWeb ? 12 : 11,  // Larger font for web
         color: Colors.grey,
       ),
       maxLines: 2,
@@ -202,7 +213,7 @@ class ItemCard extends StatelessWidget {
       'Rs.${item.calculateDiscountedPrice(item.price).toStringAsFixed(2)}',
       style: GoogleFonts.poppins(
         fontWeight: FontWeight.w600,
-        fontSize: 13,
+        fontSize: isWeb ? 14 : 13,  // Larger font for web
         color: Colors.red,
       ),
     );
@@ -213,7 +224,7 @@ class ItemCard extends StatelessWidget {
       'Rs.${item.price.toStringAsFixed(2)}',
       style: GoogleFonts.poppins(
         fontWeight: FontWeight.w600,
-        fontSize: isDiscounted ? 11 : 13,
+        fontSize: isDiscounted ? (isWeb ? 12 : 11) : (isWeb ? 14 : 13),  // Adjusted sizes for web
         color: isDiscounted ? Colors.grey : Colors.black87,
         decoration: isDiscounted ? TextDecoration.lineThrough : TextDecoration.none,
       ),
